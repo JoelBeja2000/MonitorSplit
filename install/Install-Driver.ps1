@@ -69,7 +69,7 @@ Write-Host "[1/3] Adding driver to Windows Driver Store..." -ForegroundColor Cya
 $addOutput = & pnputil /add-driver "$InfFile" /install 2>&1
 Write-Host $addOutput -ForegroundColor Gray
 
-if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010 -and $LASTEXITCODE -ne 259) {
     Write-Host "[x] pnputil /add-driver failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
     exit 1
 }
