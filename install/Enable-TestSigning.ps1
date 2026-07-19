@@ -17,9 +17,9 @@
 #>
 
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║           MonitorSplit — Enable Test Signing             ║" -ForegroundColor Cyan
-Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "|           MonitorSplit - Enable Test Signing             |" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check current status
@@ -27,7 +27,7 @@ $status = & bcdedit /enum '{current}' 2>&1
 $testSigningEnabled = $status -match 'testsigning\s+Yes'
 
 if ($testSigningEnabled) {
-    Write-Host "✓ Test signing is already ENABLED." -ForegroundColor Green
+    Write-Host "[o] Test signing is already ENABLED." -ForegroundColor Green
     Write-Host ""
     Write-Host "You can proceed to install the driver." -ForegroundColor White
 } else {
@@ -36,9 +36,9 @@ if ($testSigningEnabled) {
     $result = & bcdedit /set testsigning on 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
-        Write-Host "✓ Test Signing ENABLED successfully!" -ForegroundColor Green
+        Write-Host "[o] Test Signing ENABLED successfully!" -ForegroundColor Green
         Write-Host ""
-        Write-Host "⚠  A SYSTEM REBOOT IS REQUIRED for this to take effect." -ForegroundColor Yellow
+        Write-Host "[!] A SYSTEM REBOOT IS REQUIRED for this to take effect." -ForegroundColor Yellow
         Write-Host ""
         
         $reboot = Read-Host "Reboot now? (Y/N)"
@@ -50,7 +50,7 @@ if ($testSigningEnabled) {
             Write-Host "Remember to reboot before installing the driver." -ForegroundColor Cyan
         }
     } else {
-        Write-Host "✗ Failed to enable Test Signing:" -ForegroundColor Red
+        Write-Host "[x] Failed to enable Test Signing:" -ForegroundColor Red
         Write-Host $result -ForegroundColor Red
         Write-Host ""
         Write-Host "Make sure Secure Boot is DISABLED in your BIOS/UEFI settings." -ForegroundColor Yellow
