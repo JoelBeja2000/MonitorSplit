@@ -66,10 +66,10 @@ Write-Host "[o] Catalog file created successfully." -ForegroundColor Green
 
 # 4. Sign the DLL and CAT files
 Write-Host "Signing driver files using signtool..." -ForegroundColor Yellow
-$signDllOutput = & $signtool sign /a /s My /n "$certName" /fd SHA256 /t "http://timestamp.digicert.com" "$DllFile" 2>&1
+$signDllOutput = & $signtool sign /a /sm /s My /n "$certName" /fd SHA256 /t "http://timestamp.digicert.com" "$DllFile" 2>&1
 Write-Host $signDllOutput -ForegroundColor Gray
 
-$signCatOutput = & $signtool sign /a /s My /n "$certName" /fd SHA256 /t "http://timestamp.digicert.com" "$catFile" 2>&1
+$signCatOutput = & $signtool sign /a /sm /s My /n "$certName" /fd SHA256 /t "http://timestamp.digicert.com" "$catFile" 2>&1
 Write-Host $signCatOutput -ForegroundColor Gray
 
 Write-Host "[o] Driver files signed successfully!" -ForegroundColor Green
