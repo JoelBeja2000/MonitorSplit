@@ -53,6 +53,15 @@ if ($bootStatus -notmatch 'Yes') {
     if ($continue -ne 'Y' -and $continue -ne 'y') { exit 1 }
 }
 
+# --- Step 0: Sign driver (test-signing) --------------------------------
+Write-Host ""
+Write-Host "[0/3] Signing the driver package..." -ForegroundColor Cyan
+& (Join-Path $ScriptDir "Sign-Driver.ps1")
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[x] Failed to sign the driver." -ForegroundColor Red
+    exit 1
+}
+
 # --- Step 1: Add driver to driver store --------------------------------
 Write-Host ""
 Write-Host "[1/3] Adding driver to Windows Driver Store..." -ForegroundColor Cyan
