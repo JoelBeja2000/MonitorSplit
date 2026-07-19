@@ -1,0 +1,93 @@
+; MonitorSplitDriver.inf
+;
+; INF file for the MonitorSplit Indirect Display Driver.
+; This file tells Windows how to install the driver and associate it
+; with the correct device class (Display Adapters).
+;
+; For development: use pnputil /add-driver with Test Signing enabled.
+; For distribution: sign the .cat file with an EV code-signing certificate.
+;
+; Copyright (c) MonitorSplit Contributors. MIT License.
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = Display
+ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
+Provider    = %ManufacturerName%
+CatalogFile = MonitorSplitDriver.cat
+DriverVer   = 07/19/2024,1.0.0.0
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir   = 12         ; \Windows\System32\drivers
+UserModeSection  = 13         ; Driver store (WDK 1903+)
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+MonitorSplitDriver.dll = 1
+
+;
+; === Manufacturer and Models ===
+;
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$.10.0...22000  ; Windows 11+
+
+; Also support Windows 10 20H1+ (19041)
+[Standard.NT$ARCH$.10.0...19041]
+%DeviceName% = MonitorSplit_Install, Root\MonitorSplitDriver
+
+[Standard.NT$ARCH$.10.0...22000]
+%DeviceName% = MonitorSplit_Install, Root\MonitorSplitDriver
+
+;
+; === Driver Installation ===
+;
+
+[MonitorSplit_Install.NT]
+CopyFiles = UserModeSection
+
+[MonitorSplit_Install.NT.HW]
+AddReg = MonitorSplit_AddReg
+
+[MonitorSplit_AddReg]
+; Store default configuration in the registry
+; The app reads/writes these values
+HKR,,"Monitor1Width",  %REG_DWORD%, 960
+HKR,,"Monitor1Height", %REG_DWORD%, 1080
+HKR,,"Monitor1RefreshHz", %REG_DWORD%, 60
+HKR,,"Monitor2Width",  %REG_DWORD%, 960
+HKR,,"Monitor2Height", %REG_DWORD%, 1080
+HKR,,"Monitor2RefreshHz", %REG_DWORD%, 60
+HKR,,"IsEnabled",      %REG_DWORD%, 1
+
+[MonitorSplit_Install.NT.Services]
+AddService = MonitorSplitDriver,, MonitorSplit_ServiceInstall
+
+[MonitorSplit_ServiceInstall]
+DisplayName    = %ServiceName%
+ServiceType    = 1  ; SERVICE_KERNEL_DRIVER (for IDD it's actually user-mode, but INF uses this)
+StartType      = 3  ; SERVICE_DEMAND_START
+ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\MonitorSplitDriver.dll
+LoadOrderGroup = Video
+
+[UserModeSection]
+MonitorSplitDriver.dll
+
+;
+; === Strings ===
+;
+
+[Strings]
+ManufacturerName = "MonitorSplit Project"
+DiskName         = "MonitorSplit Driver Disk"
+DeviceName       = "MonitorSplit Virtual Display Adapter"
+ServiceName      = "MonitorSplit Display Driver"
+
+; Registry value types
+REG_DWORD = 0x00010001
+REG_SZ    = 0x00000000

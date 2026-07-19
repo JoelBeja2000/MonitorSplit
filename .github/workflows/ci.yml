@@ -1,0 +1,217 @@
+name: MonitorSplit CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+# ─── Permissions ──────────────────────────────────────────────────────
+permissions:
+  contents: write
+  checks:   write
+
+jobs:
+
+  # ════════════════════════════════════════════════════════════════════
+  # JOB 1: Build & Test the WPF control application
+  # ════════════════════════════════════════════════════════════════════
+  build-app:
+    name: Build & Test App (C# / .NET 8)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore app/MonitorSplit/MonitorSplit.csproj
+        shell: pwsh
+
+      - name: Build (Release)
+        run: |
+          dotnet build app/MonitorSplit/MonitorSplit.csproj `
+            -c Release -r win-x64 `
+            --no-restore `
+            -p:Platform=x64
+        shell: pwsh
+
+      - name: Restore test packages
+        run: dotnet restore app/MonitorSplit.Tests/MonitorSplit.Tests.csproj
+        shell: pwsh
+
+      - name: Run unit tests
+        run: |
+          dotnet test app/MonitorSplit.Tests/MonitorSplit.Tests.csproj `
+            -c Release `
+            --no-restore `
+            --logger "trx;LogFileName=test-results.trx" `
+            --collect:"XPlat Code Coverage"
+        shell: pwsh
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: xUnit Test Results
+          path: '**/*.trx'
+          reporter: dotnet-trx
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: '**/coverage.cobertura.xml'
+          fail_ci_if_error: false
+
+      - name: Publish self-contained app
+        if: github.event_name == 'release'
+        run: |
+          dotnet publish app/MonitorSplit/MonitorSplit.csproj `
+            -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:Platform=x64 `
+            -o dist/app
+        shell: pwsh
+
+      - name: Upload app artifact
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MonitorSplit-App
+          path: dist/app/MonitorSplit.exe
+
+  # ════════════════════════════════════════════════════════════════════
+  # JOB 2: Build the Windows driver (requires WDK on the runner)
+  # Note: GitHub-hosted windows-latest does NOT have WDK pre-installed.
+  # This job uses a custom matrix to allow skipping if WDK unavailable.
+  # For full driver CI, use a self-hosted runner with WDK installed.
+  # ════════════════════════════════════════════════════════════════════
+  build-driver:
+    name: Build Driver (C++ / WDK)
+    runs-on: windows-latest
+    # Skip driver build on PRs to save time; run on push to main and releases
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for WDK / MSBuild with WDK support
+        id: check_wdk
+        run: |
+          $wdkPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" `
+                     -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($wdkPath) {
+            Write-Output "wdk_available=true" >> $env:GITHUB_OUTPUT
+            Write-Host "WDK found at: $($wdkPath.FullName)"
+          } else {
+            Write-Output "wdk_available=false" >> $env:GITHUB_OUTPUT
+            Write-Host "WDK not found — skipping driver build"
+          }
+        shell: pwsh
+
+      - name: Setup MSBuild
+        if: steps.check_wdk.outputs.wdk_available == 'true'
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build driver (Release x64)
+        if: steps.check_wdk.outputs.wdk_available == 'true'
+        run: |
+          msbuild driver/MonitorSplitDriver.vcxproj `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /m `
+            /nologo
+        shell: pwsh
+
+      - name: Upload driver artifact
+        if: >
+          steps.check_wdk.outputs.wdk_available == 'true' &&
+          github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MonitorSplit-Driver
+          path: |
+            bin/Release/x64/driver/MonitorSplitDriver.dll
+            bin/Release/x64/driver/MonitorSplitDriver.inf
+
+  # ════════════════════════════════════════════════════════════════════
+  # JOB 3: Static Analysis
+  # ════════════════════════════════════════════════════════════════════
+  lint:
+    name: Static Analysis
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run .NET format check
+        run: |
+          dotnet format app/MonitorSplit/MonitorSplit.csproj `
+            --verify-no-changes `
+            --no-restore `
+            --severity warn
+        shell: pwsh
+        continue-on-error: true   # Don't fail CI on formatting issues (yet)
+
+  # ════════════════════════════════════════════════════════════════════
+  # JOB 4: Create GitHub Release package
+  # Only runs on tag push (e.g., v1.0.0)
+  # ════════════════════════════════════════════════════════════════════
+  release:
+    name: Package Release
+    runs-on: windows-latest
+    needs: [build-app]
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download app artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MonitorSplit-App
+          path: release/
+
+      - name: Download driver artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MonitorSplit-Driver
+          path: release/driver/
+        continue-on-error: true  # Driver may not be built on GH-hosted runner
+
+      - name: Copy install scripts
+        run: |
+          Copy-Item install/* release/ -Recurse
+          Copy-Item README.md release/
+          Copy-Item LICENSE release/
+        shell: pwsh
+
+      - name: Create release ZIP
+        run: |
+          $version = "${{ github.ref_name }}"
+          Compress-Archive -Path release/* `
+                           -DestinationPath "MonitorSplit-$version-win-x64.zip"
+        shell: pwsh
+
+      - name: Upload release ZIP to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "MonitorSplit-*.zip"
+          generate_release_notes: true

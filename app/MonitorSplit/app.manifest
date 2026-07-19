@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  app.manifest — Application manifest for MonitorSplit.exe
+  
+  This manifest:
+    1. Declares compatibility with Windows 10 / 11
+    2. Requests the HIGHEST DPI awareness (Per-Monitor V2)
+    3. Does NOT auto-request elevation at startup.
+       Elevation is requested on-demand (only for Install/Uninstall),
+       using a separate elevated helper process invoked by the app.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+  <assemblyIdentity
+      version="1.0.0.0"
+      processorArchitecture="amd64"
+      name="MonitorSplit.App"
+      type="win32"/>
+
+  <description>MonitorSplit Virtual Display Manager</description>
+
+  <!-- ═══ Windows Compatibility ══════════════════════════════════════ -->
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+      <!-- Windows 11 (same GUID, differentiated by build number) -->
+    </application>
+  </compatibility>
+
+  <!-- ═══ DPI Awareness ═══════════════════════════════════════════════
+       Per-Monitor V2 gives the app crisp rendering on mixed-DPI setups
+       (e.g., a 4K primary + a 1080p secondary virtual monitor).
+  ══════════════════════════════════════════════════════════════════════ -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+        PerMonitorV2
+      </dpiAwareness>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+        PerMonitorV2, PerMonitor
+      </dpiAwareness>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+        true
+      </longPathAware>
+    </windowsSettings>
+  </application>
+
+  <!-- ═══ Trust Info (no auto-elevation) ═════════════════════════════
+       The main app runs as a standard user.
+       Install/Uninstall operations spawn a separate elevated process.
+  ══════════════════════════════════════════════════════════════════════ -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+</assembly>

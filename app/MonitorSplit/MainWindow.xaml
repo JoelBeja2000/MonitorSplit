@@ -1,0 +1,436 @@
+<Window x:Class="MonitorSplit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:MonitorSplit.ViewModels"
+        Title="MonitorSplit"
+        Width="780" Height="660"
+        MinWidth="700" MinHeight="580"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip">
+
+    <!-- Outer border with drop shadow and rounded corners -->
+    <Border CornerRadius="14"
+            Background="{StaticResource BgBase}"
+            BorderBrush="{StaticResource BorderSubtle}"
+            BorderThickness="1"
+            ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect Color="#000000" BlurRadius="40" ShadowDepth="0" Opacity="0.6"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56"/>    <!-- Title bar -->
+                <RowDefinition Height="*"/>     <!-- Content -->
+                <RowDefinition Height="36"/>    <!-- Status bar -->
+            </Grid.RowDefinitions>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 TITLE BAR
+            ═══════════════════════════════════════════════════════ -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource GradientHeader}"
+                    MouseLeftButtonDown="TitleBar_MouseDown">
+                <Grid Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Logo + Title -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                        <!-- Monitor icon -->
+                        <Viewbox Width="24" Height="24">
+                            <Canvas Width="24" Height="24">
+                                <Path Fill="{StaticResource GradientAccent}"
+                                      Data="M2 3h20a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-8v2h4v2H6v-2h4v-2H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z
+                                            M3 5v11h8V5H3z M13 5v11h8V5h-8z"/>
+                            </Canvas>
+                        </Viewbox>
+                        <TextBlock Text="MonitorSplit"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimary}"
+                                   VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource AccentDim}"
+                                CornerRadius="4" Padding="6,2"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="v1.0" FontSize="11"
+                                       Foreground="{StaticResource AccentGlow}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Window controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                VerticalAlignment="Center" Spacing="8">
+                        <Button x:Name="MinimizeBtn"
+                                Width="32" Height="32"
+                                Click="MinimizeBtn_Click"
+                                ToolTip="Minimize to tray"
+                                Style="{StaticResource ButtonGhost}">
+                            <TextBlock Text="—" FontSize="12"/>
+                        </Button>
+                        <Button x:Name="CloseBtn"
+                                Width="32" Height="32"
+                                Click="CloseBtn_Click"
+                                ToolTip="Close"
+                                Style="{StaticResource ButtonGhost}">
+                            <TextBlock Text="✕" FontSize="12"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 MAIN CONTENT
+            ═══════════════════════════════════════════════════════ -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="24,20,24,20" Spacing="16">
+
+                    <!-- ── Driver Status Card ──────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Driver Status"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextSecondary}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <!-- Driver installed indicator -->
+                                    <Border CornerRadius="20" Padding="10,4">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDriverInstalled}" Value="True">
+                                                        <Setter Property="Background" Value="#1A2E1F"/>
+                                                        <Setter Property="BorderBrush" Value="#22C55E"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsDriverInstalled}" Value="False">
+                                                        <Setter Property="Background" Value="#2E1A1A"/>
+                                                        <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <Ellipse Width="8" Height="8">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDriverInstalled}" Value="True">
+                                                                <Setter Property="Fill" Value="#22C55E"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsDriverInstalled}" Value="False">
+                                                                <Setter Property="Fill" Value="#EF4444"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <TextBlock FontSize="12">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDriverInstalled}" Value="True">
+                                                                <Setter Property="Text"       Value="Driver Installed"/>
+                                                                <Setter Property="Foreground" Value="#22C55E"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsDriverInstalled}" Value="False">
+                                                                <Setter Property="Text"       Value="Driver Not Installed"/>
+                                                                <Setter Property="Foreground" Value="#EF4444"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Install / Uninstall buttons -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                        VerticalAlignment="Center">
+                                <Button Content="Install Driver"
+                                        Style="{StaticResource ButtonPrimary}"
+                                        Padding="14,8" FontSize="13"
+                                        Command="{Binding InstallDriverCommand}"
+                                        IsEnabled="{Binding IsDriverInstalled,
+                                                    Converter={StaticResource InverseBoolConverter}}"/>
+                                <Button Content="Uninstall"
+                                        Style="{StaticResource ButtonGhost}"
+                                        Padding="14,8" FontSize="13"
+                                        Command="{Binding UninstallDriverCommand}"
+                                        IsEnabled="{Binding IsDriverInstalled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ── Monitor Selector ──────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="PHYSICAL MONITOR TO SPLIT"
+                                       Style="{StaticResource LabelSection}"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          ItemsSource="{Binding PhysicalMonitors}"
+                                          SelectedItem="{Binding SelectedMonitor}"
+                                          DisplayMemberPath="FriendlyName"/>
+                                <Button Grid.Column="1"
+                                        Content="⟳ Refresh"
+                                        Margin="8,0,0,0"
+                                        Style="{StaticResource ButtonGhost}"
+                                        Command="{Binding RefreshMonitorsCommand}"/>
+                            </Grid>
+
+                            <!-- Monitor info -->
+                            <StackPanel Orientation="Horizontal" Spacing="16"
+                                        Visibility="{Binding SelectedMonitor,
+                                                     Converter={StaticResource NullToCollapsedConverter}}">
+                                <TextBlock Foreground="{StaticResource TextMuted}" FontSize="12">
+                                    <Run Text="{Binding Config.PhysicalWidth, StringFormat='{}{0}'}"/>
+                                    <Run Text="×"/>
+                                    <Run Text="{Binding Config.PhysicalHeight, StringFormat='{}{0}'}"/>
+                                    <Run Text=" px"/>
+                                </TextBlock>
+                                <TextBlock Text="·" Foreground="{StaticResource TextMuted}" FontSize="12"/>
+                                <TextBlock Foreground="{StaticResource TextMuted}" FontSize="12">
+                                    <Run Text="{Binding Config.Monitor1RefreshHz, StringFormat='{}{0}'}"/>
+                                    <Run Text=" Hz"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Monitor Preview + Split Slider ───────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="SPLIT PREVIEW" Style="{StaticResource LabelSection}"/>
+
+                            <!-- Visual preview of the split -->
+                            <Grid Height="130">
+                                <Border CornerRadius="8" Background="{StaticResource BgInput}"
+                                        BorderBrush="{StaticResource BorderNormal}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <!-- Left monitor width proportional to SplitRatio -->
+                                            <ColumnDefinition Width="{Binding SplitRatioSlider, Converter={StaticResource RatioToGridLengthConverter}}"/>
+                                            <ColumnDefinition Width="3"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Left half (Monitor 1) -->
+                                        <Border Grid.Column="0" Margin="6" CornerRadius="6"
+                                                Background="{StaticResource GradientMonitorLeft}"
+                                                Opacity="0.85">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                        Spacing="4">
+                                                <TextBlock Text="Monitor 1" FontSize="12" FontWeight="Bold"
+                                                           Foreground="White" HorizontalAlignment="Center"/>
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           FontSize="11" Foreground="#CCFFFFFF">
+                                                    <Run Text="{Binding Config.Monitor1Width}"/>
+                                                    <Run Text="×"/>
+                                                    <Run Text="{Binding Config.Monitor1Height}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Divider line -->
+                                        <Border Grid.Column="1"
+                                                Background="{StaticResource AccentPrimary}"
+                                                Opacity="0.7" CornerRadius="2"/>
+
+                                        <!-- Right half (Monitor 2) -->
+                                        <Border Grid.Column="2" Margin="6" CornerRadius="6"
+                                                Background="{StaticResource GradientMonitorRight}"
+                                                Opacity="0.85">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                        Spacing="4">
+                                                <TextBlock Text="Monitor 2" FontSize="12" FontWeight="Bold"
+                                                           Foreground="White" HorizontalAlignment="Center"/>
+                                                <TextBlock HorizontalAlignment="Center"
+                                                           FontSize="11" Foreground="#CCFFFFFF">
+                                                    <Run Text="{Binding Config.Monitor2Width}"/>
+                                                    <Run Text="×"/>
+                                                    <Run Text="{Binding Config.Monitor2Height}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+
+                            <!-- Split ratio slider -->
+                            <StackPanel Spacing="8">
+                                <Grid>
+                                    <TextBlock Text="SPLIT RATIO" Style="{StaticResource LabelSection}"/>
+                                    <TextBlock Text="{Binding SplitRatioPercent}"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{StaticResource AccentGlow}"
+                                               FontWeight="SemiBold"/>
+                                </Grid>
+                                <Slider Minimum="10" Maximum="90"
+                                        Value="{Binding SplitRatioSlider, Mode=TwoWay}"
+                                        SmallChange="1" LargeChange="5"
+                                        Height="24"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="10%"  Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                    <TextBlock Text=" ···· 50/50 ···· " HorizontalAlignment="Center"
+                                               Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                    <TextBlock Text="90%" Foreground="{StaticResource TextMuted}" FontSize="11"
+                                               HorizontalAlignment="Right"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Refresh Rate ──────────────────────────────── -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="REFRESH RATES" Style="{StaticResource LabelSection}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Monitor 1 refresh -->
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Monitor 1 (Hz)" FontSize="12"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                    <TextBox x:Name="Mon1RefreshBox"
+                                             Text="{Binding Config.Monitor1RefreshHz, UpdateSourceTrigger=LostFocus}"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="1" Text="·"
+                                           Foreground="{StaticResource TextMuted}"
+                                           VerticalAlignment="Bottom" Margin="0,0,0,8"
+                                           HorizontalAlignment="Center"/>
+
+                                <!-- Monitor 2 refresh -->
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Monitor 2 (Hz)" FontSize="12"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                    <TextBox Text="{Binding Config.Monitor2RefreshHz, UpdateSourceTrigger=LostFocus}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ── Activate / Deactivate ─────────────────────── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Apply changes -->
+                        <Button Grid.Column="0"
+                                Content="Apply Configuration"
+                                Style="{StaticResource ButtonGhost}"
+                                Height="46"
+                                Command="{Binding ApplyConfigCommand}"
+                                IsEnabled="{Binding IsDriverInstalled}"/>
+
+                        <!-- Enable / Disable toggle -->
+                        <Button Grid.Column="2"
+                                Height="46"
+                                Command="{Binding ToggleSplitCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimary}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.IsEnabled}" Value="True">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <TextBlock>
+                                                        <Run Text="⬛"/>
+                                                        <Run Text=" Deactivate Split"/>
+                                                    </TextBlock>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.IsEnabled}" Value="False">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <TextBlock>
+                                                        <Run Text="▶"/>
+                                                        <Run Text=" Activate Split"/>
+                                                    </TextBlock>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+
+                    <!-- Test Signing hint -->
+                    <Border Background="#1A1508" BorderBrush="#78350F" BorderThickness="1"
+                            CornerRadius="8" Padding="14,10">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="⚠  Development Mode — Test Signing Required"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="#F59E0B"/>
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
+                                       Foreground="#9B7C4A">
+                                <Run>Run</Run>
+                                <Run FontFamily="Consolas" Background="#2A1F0A" Foreground="#FCD34D">
+                                    Enable-TestSigning.ps1
+                                </Run>
+                                <Run>as Administrator to allow unsigned driver loading, then reboot.</Run>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 STATUS BAR
+            ═══════════════════════════════════════════════════════ -->
+            <Border Grid.Row="2"
+                    Background="{StaticResource BgSurface}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="0,1,0,0"
+                    Padding="20,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StatusMessage}"
+                               FontSize="12"
+                               Foreground="{StaticResource TextSecondary}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1"
+                               Text="MIT License · Open Source"
+                               FontSize="11"
+                               Foreground="{StaticResource TextMuted}"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Border>
+</Window>

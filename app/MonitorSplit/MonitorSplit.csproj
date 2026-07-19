@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>MonitorSplit</AssemblyName>
+    <RootNamespace>MonitorSplit</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Assembly metadata -->
+    <Version>1.0.0</Version>
+    <Company>MonitorSplit Project</Company>
+    <Product>MonitorSplit</Product>
+    <Description>Split your physical monitor into two virtual displays</Description>
+    <Copyright>Copyright © MonitorSplit Contributors. MIT License.</Copyright>
+
+    <!-- Windows-only, x64 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NuGet packages -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded resources -->
+    <Resource Include="Resources\icon.ico" />
+    <Resource Include="Resources\tray_icon.ico" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,59 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MONITORSPLIT — Color System (Dark Mode, Modern Palette)
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Background layers -->
+    <SolidColorBrush x:Key="BgBase"       Color="#0D0E14"/>
+    <SolidColorBrush x:Key="BgSurface"    Color="#13151F"/>
+    <SolidColorBrush x:Key="BgCard"       Color="#1A1D2E"/>
+    <SolidColorBrush x:Key="BgCardHover"  Color="#1F2340"/>
+    <SolidColorBrush x:Key="BgInput"      Color="#0F1119"/>
+
+    <!-- Accent — electric violet/indigo gradient represented as solid -->
+    <SolidColorBrush x:Key="AccentPrimary"   Color="#7C5CFC"/>
+    <SolidColorBrush x:Key="AccentSecondary" Color="#5B8AF7"/>
+    <SolidColorBrush x:Key="AccentGlow"      Color="#9D7BFF"/>
+    <SolidColorBrush x:Key="AccentDim"       Color="#3D2E8A"/>
+
+    <!-- Semantic colors -->
+    <SolidColorBrush x:Key="ColorSuccess"  Color="#22C55E"/>
+    <SolidColorBrush x:Key="ColorWarning"  Color="#F59E0B"/>
+    <SolidColorBrush x:Key="ColorError"    Color="#EF4444"/>
+    <SolidColorBrush x:Key="ColorInfo"     Color="#38BDF8"/>
+
+    <!-- Text colors -->
+    <SolidColorBrush x:Key="TextPrimary"   Color="#F1F0FF"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#9B9BC3"/>
+    <SolidColorBrush x:Key="TextMuted"     Color="#5A5A8A"/>
+    <SolidColorBrush x:Key="TextOnAccent"  Color="#FFFFFF"/>
+
+    <!-- Borders -->
+    <SolidColorBrush x:Key="BorderSubtle"  Color="#22243A"/>
+    <SolidColorBrush x:Key="BorderNormal"  Color="#2E3050"/>
+    <SolidColorBrush x:Key="BorderAccent"  Color="#4A3BAA"/>
+
+    <!-- Gradient brushes -->
+    <LinearGradientBrush x:Key="GradientAccent" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7C5CFC" Offset="0"/>
+        <GradientStop Color="#5B8AF7" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientHeader" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#13151F" Offset="0"/>
+        <GradientStop Color="#1A1D2E" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientMonitorLeft" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#7C5CFC" Offset="0"/>
+        <GradientStop Color="#5860E0" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GradientMonitorRight" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#3B82F6" Offset="0"/>
+        <GradientStop Color="#06B6D4" Offset="1"/>
+    </LinearGradientBrush>
+
+</ResourceDictionary>

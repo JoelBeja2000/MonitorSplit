@@ -1,0 +1,64 @@
+# MonitorSplit — .gitignore
+
+# ─── Build outputs ─────────────────────────────────────────────────
+bin/
+obj/
+dist/
+release/
+*.user
+*.suo
+
+# ─── Visual Studio ─────────────────────────────────────────────────
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+
+# ─── .NET / MSBuild ────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/PublishProfiles/
+
+# ─── Driver build artifacts ────────────────────────────────────────
+*.cat
+*.pfx
+# Keep INF in source control, but not generated/signed copies
+driver/inf/
+driver/package/
+
+# ─── Test results ──────────────────────────────────────────────────
+TestResults/
+*.trx
+*.coveragexml
+coverage.cobertura.xml
+
+# ─── OS artifacts ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Editor configs ────────────────────────────────────────────────
+*.swp
+*~
+.idea/
+*.iml
+
+# ─── Sensitive files ───────────────────────────────────────────────
+# Never commit certificates or signing keys!
+*.pfx
+*.p12
+*.key
+*.pem
+*_private*
+signing-config.json
+
+# ─── User-specific app config ──────────────────────────────────────
+# (stored in %APPDATA%, not in source)
+config.json
+
+# ─── NuGet ─────────────────────────────────────────────────────────
+*.nuget.props
+*.nuget.targets
+packages/
