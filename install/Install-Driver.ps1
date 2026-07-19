@@ -64,7 +64,29 @@ if ($LASTEXITCODE -ne 0) {
 
 # --- Step 1: Add driver to driver store --------------------------------
 Write-Host ""
-Write-Host "[1/3] Adding driver to Windows Driver Store..." -ForegroundColor Cyan
+Write-Host "[1/3] Cleaning up old driver versions and adding driver to Windows Driver Store..." -ForegroundColor Cyan
+
+# Find and delete any existing MonitorSplit OEM driver packages
+$oemDrivers = & pnputil /enum-drivers 2>&1 | Select-String -Pattern "oem\d+\.inf" -Context 0, 5
+$existingOEMs = @()
+foreach ($line in $oemDrivers) {
+    if ($line.Line -match 'oem\d+\.inf') {
+        $oemName = $Matches[0]
+        # Check if this context is indeed for MonitorSplit
+        $isMonitorSplit = $false
+        foreach ($ctxLine in $line.Context.PostContext) {
+            if ($ctxLine -match 'MonitorSplit') { $isMonitorSplit = $true }
+        }
+        if ($isMonitorSplit -and $existingOEMs -notcontains $oemName) {
+            $existingOEMs += $oemName
+        }
+    }
+}
+
+foreach ($oem in $existingOEMs) {
+    Write-Host "Removing older driver package: $oem..." -ForegroundColor Yellow
+    & pnputil /delete-driver $oem /uninstall /force 2>&1 | Out-Null
+}
 
 $addOutput = & pnputil /add-driver "$InfFile" /install 2>&1
 Write-Host $addOutput -ForegroundColor Gray
