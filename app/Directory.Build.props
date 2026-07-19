@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <MSBuildSDKsPath>C:\Program Files\dotnet\sdk\9.0.315\Sdks</MSBuildSDKsPath>
+  </PropertyGroup>
+</Project>

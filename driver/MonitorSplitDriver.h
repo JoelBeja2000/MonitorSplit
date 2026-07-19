@@ -19,9 +19,13 @@ Project: https://github.com/your-org/MonitorSplit
 #pragma once
 
 // WDF + IddCx headers
+#define IDDCX_VERSION_MAJOR 1
+#define IDDCX_VERSION_MINOR 4
+#define IDDCX_VERSION 0x1400
+
 #include <windows.h>
 #include <wdf.h>
-#include <iddcx.h>
+#include <iddcx/1.4/IddCx.h>
 #include <avrt.h>
 
 // Standard C++ headers

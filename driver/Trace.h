@@ -4,8 +4,9 @@ Module Name:
     Trace.h
 
 Abstract:
-    WPP Tracing macros for MonitorSplitDriver.
-    Enables ETW-based debug tracing via WPP.
+    Custom Debug Tracing macros for MonitorSplitDriver.
+    Uses standard OutputDebugStringA to write trace logs to debugger consoles
+    (e.g., Sysinternals DebugView) without needing WPP preprocessor tools.
 
 License: MIT
 Project: MonitorSplit
@@ -14,31 +15,38 @@ Project: MonitorSplit
 
 #pragma once
 
-//
-// Define the tracing GUID for MonitorSplit
-// {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
-//
-#define WPP_CONTROL_GUIDS \
-    WPP_DEFINE_CONTROL_GUID( \
-        MonitorSplitTraceGuid, \
-        (A1B2C3D4, E5F6, 7890, AB, CD, EF, 12, 34, 56, 78, 90), \
-        WPP_DEFINE_BIT(MYDRIVER_ALL_INFO) \
-    )
+#include <windows.h>
+#include <strsafe.h>
 
-//
-// This comment block is required by WPP preprocessor.
-// begin_wpp config
-// FUNC TraceEvents(LEVEL, FLAGS, MSG, ...);
-// FUNC TraceEntry();
-// FUNC TraceExit();
-// end_wpp
-//
+// Helper trace printer function
+inline void TraceMessage(const char* level, const char* format, ...)
+{
+    char buffer[512];
+    va_list args;
+    va_start(args, format);
+    
+    // Prefix logs for easy filtering in DebugView
+    StringCchCopyA(buffer, 512, "[MonitorSplit] ");
+    StringCchCatA(buffer, 512, level);
+    StringCchCatA(buffer, 512, ": ");
+    
+    char msg[256];
+    StringCchVPrintfA(msg, 256, format, args);
+    StringCchCatA(buffer, 512, msg);
+    StringCchCatA(buffer, 512, "\n");
+    
+    OutputDebugStringA(buffer);
+    va_end(args);
+}
 
-#define TraceEntry() TraceEvents(TRACE_LEVEL_INFORMATION, MYDRIVER_ALL_INFO, "-->%!FUNC!")
-#define TraceExit()  TraceEvents(TRACE_LEVEL_INFORMATION, MYDRIVER_ALL_INFO, "<--%!FUNC!")
+// Tracing macro overrides
+#define TraceEntry()           TraceMessage("INFO", "--> Entering %s", __FUNCTION__)
+#define TraceExit()            TraceMessage("INFO", "<-- Exiting %s", __FUNCTION__)
+#define TraceError(fmt, ...)   TraceMessage("ERROR", fmt, __VA_ARGS__)
+#define TraceWarning(fmt, ...) TraceMessage("WARNING", fmt, __VA_ARGS__)
+#define TraceInfo(fmt, ...)    TraceMessage("INFO", fmt, __VA_ARGS__)
+#define TraceVerbose(fmt, ...) TraceMessage("VERBOSE", fmt, __VA_ARGS__)
 
-// Convenience macros
-#define TraceError(fmt, ...)   TraceEvents(TRACE_LEVEL_ERROR,       MYDRIVER_ALL_INFO, fmt, __VA_ARGS__)
-#define TraceWarning(fmt, ...) TraceEvents(TRACE_LEVEL_WARNING,     MYDRIVER_ALL_INFO, fmt, __VA_ARGS__)
-#define TraceInfo(fmt, ...)    TraceEvents(TRACE_LEVEL_INFORMATION,  MYDRIVER_ALL_INFO, fmt, __VA_ARGS__)
-#define TraceVerbose(fmt, ...) TraceEvents(TRACE_LEVEL_VERBOSE,      MYDRIVER_ALL_INFO, fmt, __VA_ARGS__)
+// WPP compatibility macros (disabled since we use OutputDebugString)
+#define WPP_INIT_TRACING(a, b)
+#define WPP_CLEANUP(a)

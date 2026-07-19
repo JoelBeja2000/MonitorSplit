@@ -29,7 +29,10 @@ Project: https://github.com/your-org/MonitorSplit
 #include "MonitorSplitDriver.h"
 #include "Edid.h"
 #include "Trace.h"
-#include "MonitorSplitDriver.tmh"  // WPP generated header
+// #include "MonitorSplitDriver.tmh"  // WPP generated header (disabled)
+
+// Global reference to device context for callback functions (like ParseMonitorDescription)
+PDEVICE_CONTEXT g_pDeviceContext = nullptr;
 
 //=============================================================================
 // DriverEntry — required entry point for all WDF drivers
@@ -76,7 +79,17 @@ NTSTATUS MonitorSplit_EvtDriverDeviceAdd(
     //
     // Configure device as an IDD device
     //
-    NTSTATUS status = IddCxDeviceInitConfig(DeviceInit, nullptr);
+    IDD_CX_CLIENT_CONFIG iddConfig;
+    IDD_CX_CLIENT_CONFIG_INIT(&iddConfig);
+    iddConfig.EvtIddCxAdapterInitFinished         = MonitorSplit_EvtAdapterInitFinished;
+    iddConfig.EvtIddCxAdapterCommitModes          = MonitorSplit_EvtAdapterCommitModes;
+    iddConfig.EvtIddCxParseMonitorDescription     = MonitorSplit_EvtParseMonitorDescription;
+    iddConfig.EvtIddCxMonitorGetDefaultDescriptionModes = MonitorSplit_EvtMonitorGetDefaultModes;
+    iddConfig.EvtIddCxMonitorQueryTargetModes     = MonitorSplit_EvtMonitorQueryTargetModes;
+    iddConfig.EvtIddCxMonitorAssignSwapChain      = MonitorSplit_EvtMonitorAssignSwapChain;
+    iddConfig.EvtIddCxMonitorUnassignSwapChain    = MonitorSplit_EvtMonitorUnassignSwapChain;
+
+    NTSTATUS status = IddCxDeviceInitConfig(DeviceInit, &iddConfig);
     if (!NT_SUCCESS(status)) {
         TraceError("IddCxDeviceInitConfig failed: 0x%08X", status);
         return status;
@@ -110,6 +123,7 @@ NTSTATUS MonitorSplit_EvtDriverDeviceAdd(
     PDEVICE_CONTEXT pDevCtx = WdfObjectGet_DEVICE_CONTEXT(wdfDevice);
     RtlZeroMemory(pDevCtx, sizeof(DEVICE_CONTEXT));
     pDevCtx->WdfDevice = wdfDevice;
+    g_pDeviceContext = pDevCtx;
 
     pDevCtx->Config.Version          = MONITORSPLIT_CONFIG_VERSION;
     pDevCtx->Config.Monitor1Width    = DEFAULT_MONITOR1_WIDTH;
@@ -120,34 +134,24 @@ NTSTATUS MonitorSplit_EvtDriverDeviceAdd(
     pDevCtx->Config.Monitor2RefreshHz = DEFAULT_MONITOR2_REFRESH;
     pDevCtx->Config.IsEnabled        = TRUE;
 
-    //
-    // Create an IOCTL queue for communication with usermode app
-    //
+    // Create queue to receive IOCTLs
     WDF_IO_QUEUE_CONFIG queueConfig;
-    WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&queueConfig, WdfIoQueueDispatchParallel);
+    WDF_IO_QUEUE_CONFIG_INIT_DEFAULT_QUEUE(&queueConfig, WdfIoQueueDispatchSequential);
     queueConfig.EvtIoDeviceControl = MonitorSplit_EvtIoDeviceControl;
 
-    WDFQUEUE queue;
-    status = WdfIoQueueCreate(wdfDevice, &queueConfig, WDF_NO_OBJECT_ATTRIBUTES, &queue);
+    status = WdfIoQueueCreate(
+        wdfDevice,
+        &queueConfig,
+        WDF_NO_OBJECT_ATTRIBUTES,
+        WDF_NO_HANDLE);
+
     if (!NT_SUCCESS(status)) {
         TraceError("WdfIoQueueCreate failed: 0x%08X", status);
         return status;
     }
 
-    //
-    // Initialize the IddCx adapter
-    //
-    IDD_CX_CLIENT_CONFIG iddConfig;
-    IDD_CX_CLIENT_CONFIG_INIT(&iddConfig);
-    iddConfig.EvtIddCxAdapterInitFinished         = MonitorSplit_EvtAdapterInitFinished;
-    iddConfig.EvtIddCxAdapterCommitModes          = MonitorSplit_EvtAdapterCommitModes;
-    iddConfig.EvtIddCxParseMonitorDescription     = MonitorSplit_EvtParseMonitorDescription;
-    iddConfig.EvtIddCxMonitorGetDefaultDescriptionModes = MonitorSplit_EvtMonitorGetDefaultModes;
-    iddConfig.EvtIddCxMonitorQueryTargetModes     = MonitorSplit_EvtMonitorQueryTargetModes;
-    iddConfig.EvtIddCxMonitorAssignSwapChain      = MonitorSplit_EvtMonitorAssignSwapChain;
-    iddConfig.EvtIddCxMonitorUnassignSwapChain    = MonitorSplit_EvtMonitorUnassignSwapChain;
-
-    status = IddCxDeviceInitialize(wdfDevice, &iddConfig);
+    // Initialize display adapter on the device
+    status = IddCxDeviceInitialize(wdfDevice);
     if (!NT_SUCCESS(status)) {
         TraceError("IddCxDeviceInitialize failed: 0x%08X", status);
         return status;
@@ -191,7 +195,7 @@ NTSTATUS MonitorSplit_EvtDeviceD0Exit(
 // Called when the IddCx adapter is fully initialized.
 // This is where we announce our virtual monitors to Windows.
 //=============================================================================
-VOID MonitorSplit_EvtAdapterInitFinished(
+NTSTATUS MonitorSplit_EvtAdapterInitFinished(
     _In_ IDDCX_ADAPTER AdapterObject,
     _In_ const IDARG_IN_ADAPTER_INIT_FINISHED* pInArgs)
 {
@@ -199,20 +203,25 @@ VOID MonitorSplit_EvtAdapterInitFinished(
 
     TraceEntry();
 
-    // Retrieve device context from adapter
-    WDFDEVICE wdfDevice = IddCxAdapterWdfDevice(AdapterObject);
-    PDEVICE_CONTEXT pDevCtx = WdfObjectGet_DEVICE_CONTEXT(wdfDevice);
+    // Retrieve device context from global reference
+    PDEVICE_CONTEXT pDevCtx = g_pDeviceContext;
+    if (!pDevCtx) {
+        TraceError("Global device context is null in EvtAdapterInitFinished");
+        return STATUS_UNSUCCESSFUL;
+    }
     pDevCtx->Adapter = AdapterObject;
 
     // Create both virtual monitors
-    if (NT_SUCCESS(MonitorSplit_CreateMonitors(pDevCtx))) {
+    NTSTATUS status = MonitorSplit_CreateMonitors(pDevCtx);
+    if (NT_SUCCESS(status)) {
         TraceInfo("Both virtual monitors created successfully");
     }
     else {
-        TraceError("Failed to create virtual monitors");
+        TraceError("Failed to create virtual monitors: 0x%08X", status);
     }
 
     TraceExit();
+    return status;
 }
 
 //=============================================================================
@@ -254,19 +263,26 @@ NTSTATUS MonitorSplit_CreateSingleMonitor(PDEVICE_CONTEXT pDevCtx, UINT32 index)
     BYTE edid[EDID_BLOCK_SIZE];
     BuildEdidBlock(index, (UINT16)width, (UINT16)height, (UINT8)refresh, edid);
 
-    // Create the IddCx monitor object
-    IDARG_IN_CREATE_MONITOR monitorArgs = {};
-    monitorArgs.MonitorInfo.MonitorDescription.Type        = IDDCX_MONITOR_DESCRIPTION_TYPE_EDID;
-    monitorArgs.MonitorInfo.MonitorDescription.DataSize    = EDID_BLOCK_SIZE;
-    monitorArgs.MonitorInfo.MonitorDescription.pData      = edid;
-    monitorArgs.MonitorInfo.MonitorDescription.EdidVersion = IDDCX_EDID_OPTION_YCBCR_SUPPORT;
+    IDDCX_MONITOR_INFO monitorInfo = {};
+    monitorInfo.Size = sizeof(monitorInfo);
+    monitorInfo.MonitorType = DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EXTERNAL;
+    monitorInfo.ConnectorIndex = index;
+    monitorInfo.MonitorDescription.Size = sizeof(monitorInfo.MonitorDescription);
+    monitorInfo.MonitorDescription.Type        = IDDCX_MONITOR_DESCRIPTION_TYPE_EDID;
+    monitorInfo.MonitorDescription.DataSize    = EDID_BLOCK_SIZE;
+    monitorInfo.MonitorDescription.pData      = edid;
 
     // Allocate monitor context
     WDF_OBJECT_ATTRIBUTES monitorAttribs;
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&monitorAttribs, MONITOR_CONTEXT);
 
-    IDARG_OUT_CREATE_MONITOR monitorOut = {};
-    NTSTATUS status = IddCxMonitorCreate(pDevCtx->Adapter, &monitorArgs, &monitorAttribs, &monitorOut);
+    // Create the IddCx monitor object
+    IDARG_IN_MONITORCREATE monitorArgs = {};
+    monitorArgs.ObjectAttributes = &monitorAttribs;
+    monitorArgs.pMonitorInfo = &monitorInfo;
+
+    IDARG_OUT_MONITORCREATE monitorOut = {};
+    NTSTATUS status = IddCxMonitorCreate(pDevCtx->Adapter, &monitorArgs, &monitorOut);
     if (!NT_SUCCESS(status)) {
         TraceError("IddCxMonitorCreate failed for monitor %u: 0x%08X", index, status);
         return status;
@@ -280,14 +296,7 @@ NTSTATUS MonitorSplit_CreateSingleMonitor(PDEVICE_CONTEXT pDevCtx, UINT32 index)
     pMonCtx->Height       = height;
     pMonCtx->RefreshHz    = refresh;
 
-    // Announce monitor arrival to Windows
-    IDARG_IN_MONITORCREATE_ARRIVED arrivedArgs = {};
-    arrivedArgs.MonitorObject = monitorOut.MonitorObject;
-    status = IddCxMonitorArrival(pDevCtx->Adapter, &arrivedArgs);
-    if (!NT_SUCCESS(status)) {
-        TraceError("IddCxMonitorArrival failed for monitor %u: 0x%08X", index, status);
-        return status;
-    }
+
 
     TraceInfo("Monitor %u created: %ux%u @ %uHz", index, width, height, refresh);
     return STATUS_SUCCESS;
@@ -329,25 +338,43 @@ NTSTATUS MonitorSplit_EvtParseMonitorDescription(
     }
 
     // The caller has a buffer — fill in the primary mode
-    // We need the monitor context to know this monitor's resolution.
-    // IddCx passes the monitor object via pInArgs->MonitorObject.
-    PMONITOR_CONTEXT pMonCtx = WdfObjectGet_MONITOR_CONTEXT(pInArgs->MonitorObject);
+    UINT32 width = DEFAULT_MONITOR1_WIDTH;
+    UINT32 height = DEFAULT_MONITOR1_HEIGHT;
+    UINT32 refreshHz = DEFAULT_MONITOR1_REFRESH;
+
+    if (g_pDeviceContext) {
+        UINT16 productCode = 0;
+        if (pInArgs->MonitorDescription.pData && pInArgs->MonitorDescription.DataSize >= 12) {
+            BYTE* pEdid = (BYTE*)pInArgs->MonitorDescription.pData;
+            productCode = pEdid[10] | (pEdid[11] << 8);
+        }
+
+        if (productCode == EDID_PRODUCT_CODE_MONITOR2) {
+            width = g_pDeviceContext->Config.Monitor2Width;
+            height = g_pDeviceContext->Config.Monitor2Height;
+            refreshHz = g_pDeviceContext->Config.Monitor2RefreshHz;
+        } else {
+            width = g_pDeviceContext->Config.Monitor1Width;
+            height = g_pDeviceContext->Config.Monitor1Height;
+            refreshHz = g_pDeviceContext->Config.Monitor1RefreshHz;
+        }
+    }
 
     IDDCX_MONITOR_MODE mode = {};
     mode.Size               = sizeof(mode);
     mode.Origin             = IDDCX_MONITOR_MODE_ORIGIN_MONITORDESCRIPTOR;
-    mode.MonitorVideoSignalInfo.AdditionalSignalInfo.VideoStandard       = AdditionalSignalInfoFlagsNone;
-    mode.MonitorVideoSignalInfo.TotalSize.cx                              = pMonCtx->Width + 160;
-    mode.MonitorVideoSignalInfo.TotalSize.cy                              = pMonCtx->Height + 45;
-    mode.MonitorVideoSignalInfo.ActiveSize.cx                             = pMonCtx->Width;
-    mode.MonitorVideoSignalInfo.ActiveSize.cy                             = pMonCtx->Height;
-    mode.MonitorVideoSignalInfo.VSyncFreq.Numerator                       = pMonCtx->RefreshHz;
-    mode.MonitorVideoSignalInfo.VSyncFreq.Denominator                     = 1;
-    mode.MonitorVideoSignalInfo.HSyncFreq.Numerator                       = pMonCtx->RefreshHz * (pMonCtx->Height + 45);
-    mode.MonitorVideoSignalInfo.HSyncFreq.Denominator                     = 1;
-    mode.MonitorVideoSignalInfo.PixelRate                                  =
-        (UINT64)(pMonCtx->Width + 160) * (pMonCtx->Height + 45) * pMonCtx->RefreshHz;
-    mode.MonitorVideoSignalInfo.ScanLineOrdering = DISPLAYCONFIG_SCANLINE_ORDERING_PROGRESSIVE;
+    mode.MonitorVideoSignalInfo.AdditionalSignalInfo.videoStandard       = 0;
+    mode.MonitorVideoSignalInfo.totalSize.cx                              = width + 160;
+    mode.MonitorVideoSignalInfo.totalSize.cy                              = height + 45;
+    mode.MonitorVideoSignalInfo.activeSize.cx                             = width;
+    mode.MonitorVideoSignalInfo.activeSize.cy                             = height;
+    mode.MonitorVideoSignalInfo.vSyncFreq.Numerator                       = refreshHz;
+    mode.MonitorVideoSignalInfo.vSyncFreq.Denominator                     = 1;
+    mode.MonitorVideoSignalInfo.hSyncFreq.Numerator                       = refreshHz * (height + 45);
+    mode.MonitorVideoSignalInfo.hSyncFreq.Denominator                     = 1;
+    mode.MonitorVideoSignalInfo.pixelRate                                  =
+        (UINT64)(width + 160) * (height + 45) * refreshHz;
+    mode.MonitorVideoSignalInfo.scanLineOrdering = DISPLAYCONFIG_SCANLINE_ORDERING_PROGRESSIVE;
 
     pInArgs->pMonitorModes[0] = mode;
     pOutArgs->PreferredMonitorModeIdx = 0;
@@ -389,18 +416,18 @@ NTSTATUS MonitorSplit_EvtMonitorQueryTargetModes(
 
     IDDCX_TARGET_MODE targetMode = {};
     targetMode.Size               = sizeof(targetMode);
-    targetMode.TargetVideoSignalInfo.AdditionalSignalInfo.VideoStandard = AdditionalSignalInfoFlagsNone;
-    targetMode.TargetVideoSignalInfo.TotalSize.cx      = pMonCtx->Width + 160;
-    targetMode.TargetVideoSignalInfo.TotalSize.cy      = pMonCtx->Height + 45;
-    targetMode.TargetVideoSignalInfo.ActiveSize.cx     = pMonCtx->Width;
-    targetMode.TargetVideoSignalInfo.ActiveSize.cy     = pMonCtx->Height;
-    targetMode.TargetVideoSignalInfo.VSyncFreq.Numerator   = pMonCtx->RefreshHz;
-    targetMode.TargetVideoSignalInfo.VSyncFreq.Denominator = 1;
-    targetMode.TargetVideoSignalInfo.HSyncFreq.Numerator   = pMonCtx->RefreshHz * (pMonCtx->Height + 45);
-    targetMode.TargetVideoSignalInfo.HSyncFreq.Denominator = 1;
-    targetMode.TargetVideoSignalInfo.PixelRate             =
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.AdditionalSignalInfo.videoStandard = 0;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.totalSize.cx      = pMonCtx->Width + 160;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.totalSize.cy      = pMonCtx->Height + 45;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.activeSize.cx     = pMonCtx->Width;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.activeSize.cy     = pMonCtx->Height;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.vSyncFreq.Numerator   = (UINT32)pMonCtx->RefreshHz;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.vSyncFreq.Denominator = 1;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.hSyncFreq.Numerator   = (UINT32)pMonCtx->RefreshHz * (pMonCtx->Height + 45);
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.hSyncFreq.Denominator = 1;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.pixelRate             =
         (UINT64)(pMonCtx->Width + 160) * (pMonCtx->Height + 45) * pMonCtx->RefreshHz;
-    targetMode.TargetVideoSignalInfo.ScanLineOrdering = DISPLAYCONFIG_SCANLINE_ORDERING_PROGRESSIVE;
+    targetMode.TargetVideoSignalInfo.targetVideoSignalInfo.scanLineOrdering = DISPLAYCONFIG_SCANLINE_ORDERING_PROGRESSIVE;
 
     pInArgs->pTargetModes[0] = targetMode;
     return STATUS_SUCCESS;
@@ -411,7 +438,7 @@ NTSTATUS MonitorSplit_EvtMonitorQueryTargetModes(
 // Called when Windows is ready to start rendering to this virtual monitor.
 // We launch a background thread to consume swap chain frames.
 //=============================================================================
-VOID MonitorSplit_EvtMonitorAssignSwapChain(
+NTSTATUS MonitorSplit_EvtMonitorAssignSwapChain(
     _In_ IDDCX_MONITOR              MonitorObject,
     _In_ const IDARG_IN_SETSWAPCHAIN* pInArgs)
 {
@@ -425,7 +452,7 @@ VOID MonitorSplit_EvtMonitorAssignSwapChain(
     WDFOBJECT scObject;
     if (!NT_SUCCESS(WdfObjectCreate(&scAttribs, &scObject))) {
         TraceError("Failed to create swap chain context object");
-        return;
+        return STATUS_UNSUCCESSFUL;
     }
 
     PSWAPCHAIN_CONTEXT pScCtx = WdfObjectGet_SWAPCHAIN_CONTEXT(scObject);
@@ -435,7 +462,7 @@ VOID MonitorSplit_EvtMonitorAssignSwapChain(
 
     if (!pScCtx->hTerminateEvent) {
         TraceError("Failed to create terminate event");
-        return;
+        return STATUS_UNSUCCESSFUL;
     }
 
     // Launch background thread that processes frames
@@ -450,16 +477,18 @@ VOID MonitorSplit_EvtMonitorAssignSwapChain(
     if (!pScCtx->hThread) {
         TraceError("Failed to create swap chain thread");
         CloseHandle(pScCtx->hTerminateEvent);
+        return STATUS_UNSUCCESSFUL;
     }
 
     TraceExit();
+    return STATUS_SUCCESS;
 }
 
 //=============================================================================
 // MonitorSplit_EvtMonitorUnassignSwapChain
 // Called when Windows stops rendering to this virtual monitor.
 //=============================================================================
-VOID MonitorSplit_EvtMonitorUnassignSwapChain(
+NTSTATUS MonitorSplit_EvtMonitorUnassignSwapChain(
     _In_ IDDCX_MONITOR MonitorObject)
 {
     TraceEntry();
@@ -469,6 +498,7 @@ VOID MonitorSplit_EvtMonitorUnassignSwapChain(
     UNREFERENCED_PARAMETER(MonitorObject);
 
     TraceExit();
+    return STATUS_SUCCESS;
 }
 
 //=============================================================================
@@ -491,47 +521,27 @@ DWORD WINAPI MonitorSplit_SwapChainThread(LPVOID pContext)
     while (WaitForSingleObject(pScCtx->hTerminateEvent, 0) == WAIT_TIMEOUT)
     {
         // Acquire the next frame from the swap chain
-        IDARG_IN_ACQUIRESIGNALFRAME  acquireIn  = {};
-        IDARG_OUT_ACQUIRESIGNALFRAME acquireOut = {};
-        
-        acquireIn.FrameStatisticsSequenceNumber = 0;
+        IDARG_OUT_RELEASEANDACQUIREBUFFER acquireOut = {};
+        NTSTATUS status = IddCxSwapChainReleaseAndAcquireBuffer(pScCtx->SwapChain, &acquireOut);
 
-        NTSTATUS status = IddCxSwapChainReleaseAndAcquireBuffer(
-            pScCtx->SwapChain,
-            &acquireIn,
-            &acquireOut);
+        if (status == STATUS_PENDING) {
+            // No frame ready yet — wait a bit and retry
+            Sleep(1);
+            continue;
+        }
 
         if (!NT_SUCCESS(status)) {
-            // STATUS_PENDING means no frame yet — spin
-            if (status == STATUS_PENDING) {
-                Sleep(1);
-                continue;
-            }
-            // Any other error means swap chain was torn down
-            TraceError("IddCxSwapChainReleaseAndAcquireBuffer: 0x%08X", status);
+            // Swap chain was torn down
+            TraceError("IddCxSwapChainReleaseAndAcquireBuffer failed: 0x%08X", status);
             break;
         }
 
-        //
-        // At this point, acquireOut.MetaData contains frame metadata and
-        // acquireOut.FrameStatistics has timing info. The frame surface is
-        // a DirectX texture accessible via the swap chain.
-        //
-        // For MonitorSplit, we don't need to do anything with the frame content
-        // (we're not encoding or redirecting it). The frame is just "consumed"
-        // here which is correct behavior for a virtual monitor that doesn't
-        // physically display anything — Windows uses its own composition engine
-        // to composite windows onto the virtual display.
-        //
-        // If you want to implement screen capture / streaming, you would
-        // access the DirectX surface here using IddCxSwapChainGetMsaaSurface
-        // or similar APIs.
-        //
-
-        // Release the frame back to the system
-        IDARG_IN_RELEASEANDACQUIREBUFFER releaseIn = {};
-        releaseIn.FrameStatistics = acquireOut.FrameStatistics;
-        IddCxSwapChainReleaseAndAcquireBuffer(pScCtx->SwapChain, (PIDARG_IN_ACQUIRESIGNALFRAME)&releaseIn, &acquireOut);
+        // Release the frame back to the system (FinishedProcessingFrame)
+        status = IddCxSwapChainFinishedProcessingFrame(pScCtx->SwapChain);
+        if (!NT_SUCCESS(status)) {
+            TraceError("IddCxSwapChainFinishedProcessingFrame failed: 0x%08X", status);
+            break;
+        }
     }
 
     if (hAvrtTask) {
