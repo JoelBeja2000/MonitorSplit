@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>MonitorSplit</AssemblyName>
     <RootNamespace>MonitorSplit</RootNamespace>
     <Nullable>enable</Nullable>

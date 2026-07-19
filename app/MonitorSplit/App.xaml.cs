@@ -1,12 +1,13 @@
 // App.xaml.cs — Application entry point and lifetime management
 using System.Windows;
+using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using MonitorSplit.Services;
 using MonitorSplit.ViewModels;
 
 namespace MonitorSplit;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private ServiceProvider? _services;
     private System.Windows.Forms.NotifyIcon? _trayIcon;

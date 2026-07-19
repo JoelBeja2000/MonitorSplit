@@ -41,9 +41,9 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Logo + Title -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Monitor icon -->
-                        <Viewbox Width="24" Height="24">
+                        <Viewbox Width="24" Height="24" Margin="0,0,10,0">
                             <Canvas Width="24" Height="24">
                                 <Path Fill="{StaticResource GradientAccent}"
                                       Data="M2 3h20a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-8v2h4v2H6v-2h4v-2H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z
@@ -53,7 +53,7 @@
                         <TextBlock Text="MonitorSplit"
                                    FontSize="16" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextPrimary}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <Border Background="{StaticResource AccentDim}"
                                 CornerRadius="4" Padding="6,2"
                                 VerticalAlignment="Center">
@@ -64,12 +64,13 @@
 
                     <!-- Window controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal"
-                                VerticalAlignment="Center" Spacing="8">
+                                VerticalAlignment="Center">
                         <Button x:Name="MinimizeBtn"
                                 Width="32" Height="32"
                                 Click="MinimizeBtn_Click"
                                 ToolTip="Minimize to tray"
-                                Style="{StaticResource ButtonGhost}">
+                                Style="{StaticResource ButtonGhost}"
+                                Margin="0,0,8,0">
                             <TextBlock Text="—" FontSize="12"/>
                         </Button>
                         <Button x:Name="CloseBtn"
@@ -89,7 +90,7 @@
             <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Margin="24,20,24,20" Spacing="16">
+                <StackPanel Margin="24,20,24,20" >
 
                     <!-- ── Driver Status Card ──────────────────────── -->
                     <Border Style="{StaticResource Card}">
@@ -99,11 +100,11 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Spacing="4">
+                            <StackPanel Grid.Column="0" >
                                 <TextBlock Text="Driver Status"
                                            FontSize="13" FontWeight="SemiBold"
                                            Foreground="{StaticResource TextSecondary}"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" >
                                     <!-- Driver installed indicator -->
                                     <Border CornerRadius="20" Padding="10,4">
                                         <Border.Style>
@@ -122,7 +123,7 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" >
                                             <Ellipse Width="8" Height="8">
                                                 <Ellipse.Style>
                                                     <Style TargetType="Ellipse">
@@ -159,7 +160,7 @@
                             </StackPanel>
 
                             <!-- Install / Uninstall buttons -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" 
                                         VerticalAlignment="Center">
                                 <Button Content="Install Driver"
                                         Style="{StaticResource ButtonPrimary}"
@@ -178,7 +179,7 @@
 
                     <!-- ── Monitor Selector ──────────────────────────── -->
                     <Border Style="{StaticResource Card}">
-                        <StackPanel Spacing="12">
+                        <StackPanel >
                             <TextBlock Text="PHYSICAL MONITOR TO SPLIT"
                                        Style="{StaticResource LabelSection}"/>
 
@@ -199,7 +200,7 @@
                             </Grid>
 
                             <!-- Monitor info -->
-                            <StackPanel Orientation="Horizontal" Spacing="16"
+                            <StackPanel Orientation="Horizontal" 
                                         Visibility="{Binding SelectedMonitor,
                                                      Converter={StaticResource NullToCollapsedConverter}}">
                                 <TextBlock Foreground="{StaticResource TextMuted}" FontSize="12">
@@ -219,7 +220,7 @@
 
                     <!-- ── Monitor Preview + Split Slider ───────────── -->
                     <Border Style="{StaticResource Card}">
-                        <StackPanel Spacing="16">
+                        <StackPanel >
                             <TextBlock Text="SPLIT PREVIEW" Style="{StaticResource LabelSection}"/>
 
                             <!-- Visual preview of the split -->
@@ -239,7 +240,7 @@
                                                 Background="{StaticResource GradientMonitorLeft}"
                                                 Opacity="0.85">
                                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                        Spacing="4">
+                                                        >
                                                 <TextBlock Text="Monitor 1" FontSize="12" FontWeight="Bold"
                                                            Foreground="White" HorizontalAlignment="Center"/>
                                                 <TextBlock HorizontalAlignment="Center"
@@ -261,7 +262,7 @@
                                                 Background="{StaticResource GradientMonitorRight}"
                                                 Opacity="0.85">
                                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                        Spacing="4">
+                                                        >
                                                 <TextBlock Text="Monitor 2" FontSize="12" FontWeight="Bold"
                                                            Foreground="White" HorizontalAlignment="Center"/>
                                                 <TextBlock HorizontalAlignment="Center"
@@ -277,7 +278,7 @@
                             </Grid>
 
                             <!-- Split ratio slider -->
-                            <StackPanel Spacing="8">
+                            <StackPanel >
                                 <Grid>
                                     <TextBlock Text="SPLIT RATIO" Style="{StaticResource LabelSection}"/>
                                     <TextBlock Text="{Binding SplitRatioPercent}"
@@ -302,7 +303,7 @@
 
                     <!-- ── Refresh Rate ──────────────────────────────── -->
                     <Border Style="{StaticResource Card}">
-                        <StackPanel Spacing="12">
+                        <StackPanel >
                             <TextBlock Text="REFRESH RATES" Style="{StaticResource LabelSection}"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -312,7 +313,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Monitor 1 refresh -->
-                                <StackPanel Grid.Column="0" Spacing="6">
+                                <StackPanel Grid.Column="0" >
                                     <TextBlock Text="Monitor 1 (Hz)" FontSize="12"
                                                Foreground="{StaticResource TextSecondary}"/>
                                     <TextBox x:Name="Mon1RefreshBox"
@@ -325,7 +326,7 @@
                                            HorizontalAlignment="Center"/>
 
                                 <!-- Monitor 2 refresh -->
-                                <StackPanel Grid.Column="2" Spacing="6">
+                                <StackPanel Grid.Column="2" >
                                     <TextBlock Text="Monitor 2 (Hz)" FontSize="12"
                                                Foreground="{StaticResource TextSecondary}"/>
                                     <TextBox Text="{Binding Config.Monitor2RefreshHz, UpdateSourceTrigger=LostFocus}"/>
@@ -386,7 +387,7 @@
                     <!-- Test Signing hint -->
                     <Border Background="#1A1508" BorderBrush="#78350F" BorderThickness="1"
                             CornerRadius="8" Padding="14,10">
-                        <StackPanel Spacing="4">
+                        <StackPanel >
                             <TextBlock Text="⚠  Development Mode — Test Signing Required"
                                        FontSize="12" FontWeight="SemiBold"
                                        Foreground="#F59E0B"/>

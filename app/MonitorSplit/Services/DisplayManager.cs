@@ -105,7 +105,7 @@ public static class DisplayManager
         var monitors = new List<PhysicalMonitor>();
 
         EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
-            (hMon, hdcMon, ref rect, data) =>
+            (IntPtr hMon, IntPtr hdcMon, ref RECT rect, IntPtr data) =>
             {
                 var mi = new MONITORINFOEX { cbSize = (uint)Marshal.SizeOf<MONITORINFOEX>() };
                 if (!GetMonitorInfo(hMon, ref mi)) return true;

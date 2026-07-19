@@ -2,6 +2,7 @@
 // Uses CommunityToolkit.Mvvm for observable properties and commands.
 
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

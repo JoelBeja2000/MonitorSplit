@@ -2,6 +2,7 @@
 // Handles driver installation, removal, and IOCTL communication.
 
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using MonitorSplit.Models;
