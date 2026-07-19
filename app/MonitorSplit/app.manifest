@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  app.manifest — Application manifest for MonitorSplit.exe
+  app.manifest - Application manifest for MonitorSplit.exe
   
   This manifest:
     1. Declares compatibility with Windows 10 / 11
@@ -19,7 +19,7 @@
 
   <description>MonitorSplit Virtual Display Manager</description>
 
-  <!-- ═══ Windows Compatibility ══════════════════════════════════════ -->
+  <!-- === Windows Compatibility ====================================== -->
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
       <!-- Windows 10 -->
@@ -28,10 +28,10 @@
     </application>
   </compatibility>
 
-  <!-- ═══ DPI Awareness ═══════════════════════════════════════════════
+  <!-- === DPI Awareness ===============================================
        Per-Monitor V2 gives the app crisp rendering on mixed-DPI setups
        (e.g., a 4K primary + a 1080p secondary virtual monitor).
-  ══════════════════════════════════════════════════════════════════════ -->
+  ====================================================================== -->
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
@@ -46,10 +46,10 @@
     </windowsSettings>
   </application>
 
-  <!-- ═══ Trust Info (no auto-elevation) ═════════════════════════════
+  <!-- === Trust Info (no auto-elevation) =============================
        The main app runs as a standard user.
        Install/Uninstall operations spawn a separate elevated process.
-  ══════════════════════════════════════════════════════════════════════ -->
+  ====================================================================== -->
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges>
