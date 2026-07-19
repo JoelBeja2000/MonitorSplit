@@ -22,22 +22,36 @@
 - [x] `app/MonitorSplit/Converters/Converters.cs`
 - [x] `app/MonitorSplit/Themes/Colors.xaml` — sistema de colores dark mode
 - [x] `app/MonitorSplit/Themes/Controls.xaml` — estilos de controles
+- [x] `app/MonitorSplit/app.manifest` — DPI awareness + compatibilidad Windows 10/11
+- [x] `app/MonitorSplit/Resources/icon.ico` — generado desde PNG (16,32,48,64,128,256px)
+- [x] `app/MonitorSplit/Resources/tray_icon.ico` — generado desde PNG (16,32px)
 
-## Fase 3: Scripts de Instalación
+## Fase 3: Tests Unitarios
+- [x] `app/MonitorSplit.Tests/MonitorSplit.Tests.csproj` — proyecto xUnit
+- [x] `app/MonitorSplit.Tests/SplitConfigTests.cs` — tests del modelo
+- [x] `app/MonitorSplit.Tests/MainViewModelTests.cs` — tests del ViewModel
+
+## Fase 4: Scripts de Instalación
 - [x] `install/Enable-TestSigning.ps1`
 - [x] `install/Install-Driver.ps1`
 - [x] `install/Uninstall-Driver.ps1`
+- [x] `install/Convert-IconPng.ps1` — convierte PNG a ICO
 
-## Fase 4: Documentación
+## Fase 5: CI/CD y DevOps
+- [x] `.github/workflows/ci.yml` — GitHub Actions (build, test, release)
+- [x] `.gitignore`
+- [x] `git init` + primer commit (38 archivos, 4842 líneas)
+
+## Fase 6: Documentación
 - [x] `README.md`
 - [x] `LICENSE` (MIT)
 - [x] `docs/BUILD.md` — cómo compilar el driver
-- [ ] `docs/ARCHITECTURE.md` — diagramas detallados
-- [ ] `CONTRIBUTING.md`
+- [x] `docs/ARCHITECTURE.md` — diagramas detallados con secuencias
+- [x] `CONTRIBUTING.md`
+- [x] `docs/screenshot_mockup.png` — icono/mockup del proyecto
 
-## Pendiente (próximos pasos)
-- [ ] Recursos de imagen (icon.ico, tray_icon.ico)
-- [ ] app.manifest (elevación UAC para instalación)
-- [ ] Tests unitarios para la app de control
-- [ ] Pipeline CI/CD (GitHub Actions)
-- [ ] Firma del driver (EV Certificate o SignPath)
+## COMPLETADO - Próximos pasos para el usuario
+- [ ] Instalar Visual Studio 2022 + WDK y compilar el driver
+- [ ] Habilitar Test Signing y ejecutar Install-Driver.ps1
+- [ ] Crear repositorio en GitHub y hacer `git remote add origin ...`
+- [ ] Firmar el driver con EV Certificate para distribución pública (opcional)
