@@ -65,7 +65,7 @@ HKR,,"Monitor2RefreshHz", %REG_DWORD%, 60
 HKR,,"IsEnabled",      %REG_DWORD%, 1
 
 [MonitorSplit_Install.NT.Services]
-AddService = MonitorSplitDriver,, MonitorSplit_ServiceInstall
+AddService = MonitorSplitDriver, 0x00000002, MonitorSplit_ServiceInstall
 
 [MonitorSplit_ServiceInstall]
 DisplayName    = %ServiceName%
