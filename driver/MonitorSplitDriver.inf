@@ -34,13 +34,13 @@ MonitorSplitDriver.dll = 1
 ;
 
 [Manufacturer]
-%ManufacturerName% = Standard,NT$ARCH$.10.0...22000  ; Windows 11+
+%ManufacturerName% = Standard,NTamd64.10.0...22000  ; Windows 11+
 
 ; Also support Windows 10 20H1+ (19041)
-[Standard.NT$ARCH$.10.0...19041]
+[Standard.NTamd64.10.0...19041]
 %DeviceName% = MonitorSplit_Install, Root\MonitorSplitDriver
 
-[Standard.NT$ARCH$.10.0...22000]
+[Standard.NTamd64.10.0...22000]
 %DeviceName% = MonitorSplit_Install, Root\MonitorSplitDriver
 
 ;
