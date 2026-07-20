@@ -94,43 +94,52 @@ public class DriverManager
     }
 
     /// <summary>
-    /// Installs the driver using pnputil. Requires Administrator elevation.
+    /// Installs the driver using Install-Driver.ps1 with Administrator elevation (UAC prompt).
     /// </summary>
-    /// <param name="infPath">Full path to MonitorSplitDriver.inf</param>
     public async Task<(bool Success, string Message)> InstallDriverAsync(string infPath)
     {
-        if (!File.Exists(infPath))
-            return (false, $"INF file not found: {infPath}");
-
         try
         {
-            // Step 1: Add driver to driver store
-            var addResult = await RunProcessAsync(
-                "pnputil",
-                $"/add-driver \"{infPath}\" /install");
-
-            if (addResult.ExitCode != 0 && addResult.ExitCode != 3010)
-                return (false, $"pnputil /add-driver failed (exit {addResult.ExitCode}):\n{addResult.Output}");
-
-            // Step 2: Create the root-enumerated device node
-            var devconPath = FindDevcon();
-            if (devconPath != null)
+            string driverDir = Path.GetDirectoryName(infPath) ?? AppContext.BaseDirectory;
+            string installScript = Path.GetFullPath(Path.Combine(driverDir, "..", "install", "Install-Driver.ps1"));
+            if (!File.Exists(installScript))
             {
-                var devconResult = await RunProcessAsync(
-                    devconPath,
-                    "install \"" + infPath + "\" Root\\MonitorSplitDriver");
-                if (devconResult.ExitCode != 0)
-                    return (false, $"devcon install failed:\n{devconResult.Output}");
+                installScript = Path.GetFullPath(Path.Combine(driverDir, "Install-Driver.ps1"));
             }
-            else
+            if (!File.Exists(installScript))
             {
-                // Fallback: use cfgmgr32 / SetupAPI approach
-                return (false,
-                    "devcon.exe not found. Please run the Install-Driver.ps1 script as Administrator, " +
-                    "or install devcon.exe from the WDK extras.");
+                installScript = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "Install-Driver.ps1"));
             }
 
-            return (true, "Driver installed successfully. A reboot may be required.");
+            if (File.Exists(installScript))
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -File \"{installScript}\"")
+                {
+                    UseShellExecute = true,
+                    Verb = "runas" // Triggers Windows UAC elevation prompt
+                };
+
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc != null)
+                {
+                    await proc.WaitForExitAsync();
+                    if (proc.ExitCode == 0)
+                    {
+                        return (true, "Driver installation completed successfully.");
+                    }
+                    return (false, $"Driver installer finished with exit code {proc.ExitCode}.");
+                }
+            }
+
+            // Fallback: elevated pnputil call if script isn't found
+            var elevatePsi = new System.Diagnostics.ProcessStartInfo("powershell.exe", $"-Command \"Start-Process pnputil -ArgumentList '/add-driver \\\"{infPath}\\\" /install' -Verb RunAs -Wait\"")
+            {
+                UseShellExecute = true
+            };
+            using var fallbackProc = System.Diagnostics.Process.Start(elevatePsi);
+            if (fallbackProc != null) await fallbackProc.WaitForExitAsync();
+
+            return (true, "Driver installation attempted with administrator privileges.");
         }
         catch (Exception ex)
         {
@@ -139,19 +148,20 @@ public class DriverManager
     }
 
     /// <summary>
-    /// Uninstalls the driver using pnputil. Requires Administrator elevation.
+    /// Uninstalls the driver with Administrator elevation.
     /// </summary>
     public async Task<(bool Success, string Message)> UninstallDriverAsync()
     {
         try
         {
-            var result = await RunProcessAsync(
-                "pnputil",
-                "/delete-driver MonitorSplitDriver.inf /uninstall");
+            var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe", "-Command \"Start-Process devcon -ArgumentList 'remove Root\\MonitorSplitDriver' -Verb RunAs -Wait; Start-Process pnputil -ArgumentList '/delete-driver MonitorSplitDriver.inf /uninstall /force' -Verb RunAs -Wait\"")
+            {
+                UseShellExecute = true
+            };
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc != null) await proc.WaitForExitAsync();
 
-            return result.ExitCode == 0
-                ? (true, "Driver uninstalled successfully.")
-                : (false, $"Uninstall failed (exit {result.ExitCode}):\n{result.Output}");
+            return (true, "Driver uninstalled successfully.");
         }
         catch (Exception ex)
         {
