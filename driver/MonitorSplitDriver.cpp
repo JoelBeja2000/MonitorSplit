@@ -285,6 +285,8 @@ NTSTATUS MonitorSplit_CreateSingleMonitor(PDEVICE_CONTEXT pDevCtx, UINT32 index)
     monitorInfo.MonitorDescription.DataSize    = EDID_BLOCK_SIZE;
     monitorInfo.MonitorDescription.pData      = edid;
 
+    CoCreateGuid(&monitorInfo.MonitorContainerId);
+
     // Allocate monitor context
     WDF_OBJECT_ATTRIBUTES monitorAttribs;
     WDF_OBJECT_ATTRIBUTES_INIT_CONTEXT_TYPE(&monitorAttribs, MONITOR_CONTEXT);

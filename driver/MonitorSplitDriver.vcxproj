@@ -82,7 +82,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.33;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile></ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -98,7 +98,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.33;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 

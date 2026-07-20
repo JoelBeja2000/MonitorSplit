@@ -24,6 +24,7 @@ Project: https://github.com/your-org/MonitorSplit
 #define IDDCX_VERSION 0x1400
 
 #include <windows.h>
+#include <objbase.h>
 #include <wdf.h>
 #include <iddcx/1.4/IddCx.h>
 #include <avrt.h>
