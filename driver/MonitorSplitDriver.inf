@@ -16,7 +16,7 @@ Class       = Display
 ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/19/2026,1.0.1.0
+DriverVer   = 07/19/2026,1.0.2.0
 PnpLockdown = 1
 
 [DestinationDirs]
@@ -77,6 +77,14 @@ LoadOrderGroup = Video
 
 [UserModeSection]
 MonitorSplitDriver.dll
+
+[MonitorSplit_Install.NT.Wdf]
+UmdfService = MonitorSplitDriver, MonitorSplit_Install_Wdf_Service
+UmdfServiceOrder = MonitorSplitDriver
+
+[MonitorSplit_Install_Wdf_Service]
+UmdfLibraryVersion = 2.33
+ServiceBinary = %13%\MonitorSplitDriver.dll
 
 ;
 ; === Strings ===

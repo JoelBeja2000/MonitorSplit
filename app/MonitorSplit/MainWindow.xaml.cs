@@ -11,12 +11,12 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        InitializeComponent();
-
-        // Register value converters as static resources
+        // Register value converters as static resources BEFORE InitializeComponent
         Resources["InverseBoolConverter"] = new InverseBoolConverter();
         Resources["NullToCollapsedConverter"] = new NullToCollapsedConverter();
         Resources["RatioToGridLengthConverter"] = new RatioToGridLengthConverter();
+
+        InitializeComponent();
     }
 
     // ─── Custom title bar drag ────────────────────────────────────────
