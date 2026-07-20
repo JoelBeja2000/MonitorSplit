@@ -74,14 +74,14 @@
 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)driver;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\wdf\umdf\2.25;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\iddcx\1.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)driver;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\wdf\umdf\2.33;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\iddcx\1.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UMDF_USING_NTSTATUS;_DEBUG;UNICODE;_UNICODE;IDDCX_VERSION_MAJOR=1;IDDCX_VERSION_MINOR=4;IDDCX_VERSION=0x1400;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.25;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.33;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile></ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,14 +90,14 @@
 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)driver;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\wdf\umdf\2.25;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\iddcx\1.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)driver;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\wdf\umdf\2.33;C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\iddcx\1.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UMDF_USING_NTSTATUS;NDEBUG;UNICODE;_UNICODE;IDDCX_VERSION_MAJOR=1;IDDCX_VERSION_MINOR=4;IDDCX_VERSION=0x1400;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.25;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iddcx\1.4;C:\Program Files (x86)\Windows Kits\10\Lib\wdf\umdf\x64\2.33;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iddcxstub.lib;WdfDriverStubUm.lib;avrt.lib;ntdll.lib;OneCoreUAP.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
