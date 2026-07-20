@@ -102,6 +102,7 @@ public partial class MainViewModel : ObservableObject
         Config.Monitor1RefreshHz   = SelectedMonitor.RefreshHz;
         Config.Monitor2RefreshHz   = SelectedMonitor.RefreshHz;
         Config.RecalculateFromPhysical();
+        UpdatePreviewDimensions();
 
         OnPropertyChanged(nameof(Config));
         OnPropertyChanged(nameof(SplitRatioPercent));
@@ -263,9 +264,9 @@ public partial class MainViewModel : ObservableObject
         double physicalHeight = Config.PhysicalHeight > 0 ? Config.PhysicalHeight : 1080;
         double aspectRatio = physicalWidth / physicalHeight;
 
-        // Bounding box limits for the preview area (max width 400, max height 160)
-        const double maxW = 400;
-        const double maxH = 160;
+        // Bounding box limits for the preview area (max width 440, max height 240)
+        const double maxW = 440;
+        const double maxH = 240;
 
         if (aspectRatio > (maxW / maxH))
         {
