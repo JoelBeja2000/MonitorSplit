@@ -79,15 +79,22 @@ if ($devcon) {
     Write-Host "Removing all MonitorSplit device nodes..." -ForegroundColor Yellow
     & $devcon remove "Root\MonitorSplitDriver" 2>&1 | Out-Null
     Start-Sleep -Seconds 1
-} else {
-    Write-Host "[!] devcon.exe not found. Cannot clean device nodes." -ForegroundColor Yellow
 }
 
-# Delete the old Windows service entry
+# Delete the old Windows service entry if present
 Stop-Service -Name "MonitorSplitDriver" -Force -ErrorAction SilentlyContinue
 sc.exe delete MonitorSplitDriver 2>&1 | Out-Null
 
-# Remove all OEM driver packages
+# Remove all OEM driver packages via DISM / Get-WindowsDriver
+try {
+    $staleDrivers = Get-WindowsDriver -Online -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -match "MonitorSplit" -or $_.OriginalFileName -match "monitorsplit" }
+    foreach ($drv in $staleDrivers) {
+        Write-Host "Removing driver package $($drv.Driver)..." -ForegroundColor Yellow
+        & pnputil /delete-driver $drv.Driver /uninstall /force 2>&1 | Out-Null
+    }
+} catch {}
+
+# Fallback pnputil check
 $oemDrivers = & pnputil /enum-drivers 2>&1 | Select-String -Pattern "oem\d+\.inf" -Context 0, 5
 $existingOEMs = @()
 foreach ($line in $oemDrivers) {
@@ -132,19 +139,21 @@ if ($devcon) {
     $devconOutput = & $devcon install "$InfFile" "Root\MonitorSplitDriver" 2>&1
     Write-Host $devconOutput -ForegroundColor Gray
 
-    Write-Host "Updating driver binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
-    $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
-    Write-Host $updateOutput -ForegroundColor Gray
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Updating driver binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
+        $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
+        Write-Host $updateOutput -ForegroundColor Gray
+    }
 
     if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {
-        Write-Host "[o] Virtual device node created and updated" -ForegroundColor Green
+        Write-Host "[o] Virtual device node created and configured" -ForegroundColor Green
     } else {
         Write-Host "[!] devcon.exe returned exit code $LASTEXITCODE" -ForegroundColor Yellow
     }
 
     # Check status after creation
     Start-Sleep -Seconds 2
-    $deviceStatus = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" } | Select-Object Status, Problem -First 1
+    $deviceStatus = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" -or $_.InstanceId -match "MonitorSplit" } | Select-Object Status, Problem -First 1
     if ($deviceStatus) {
         Write-Host "Device Status: $($deviceStatus.Status), Problem: $($deviceStatus.Problem)" -ForegroundColor $(if ($deviceStatus.Status -eq 'OK') { 'Green' } else { 'Yellow' })
     }
