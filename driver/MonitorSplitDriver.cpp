@@ -349,7 +349,7 @@ NTSTATUS MonitorSplit_EvtParseMonitorDescription(
     if (pInArgs->MonitorModeBufferInputCount < 1)
     {
         // Just reporting the count
-        return STATUS_BUFFER_TOO_SMALL;
+        return STATUS_SUCCESS;
     }
 
     // The caller has a buffer — fill in the primary mode
@@ -426,7 +426,7 @@ NTSTATUS MonitorSplit_EvtMonitorQueryTargetModes(
     pOutArgs->TargetModeBufferOutputCount = 1;
 
     if (pInArgs->TargetModeBufferInputCount < 1) {
-        return STATUS_BUFFER_TOO_SMALL;
+        return STATUS_SUCCESS;
     }
 
     IDDCX_TARGET_MODE targetMode = {};
