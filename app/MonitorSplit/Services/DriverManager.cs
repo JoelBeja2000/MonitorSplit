@@ -80,15 +80,45 @@ public class DriverManager
     // ─── Driver Installation ─────────────────────────────────────────
 
     /// <summary>
-    /// Checks whether the driver is currently installed (visible in Device Manager).
+    /// Checks whether the driver is currently installed (visible in Device Manager or PnP Registry).
     /// </summary>
     private bool CheckDriverInstalled()
     {
         try
         {
-            using var key = Registry.LocalMachine.OpenSubKey(
-                @"SYSTEM\CurrentControlSet\Services\MonitorSplitDriver");
-            return key != null;
+            // Method 1: Check PnP Root Enum registry key
+            using (var displayRootKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\Root\DISPLAY"))
+            {
+                if (displayRootKey != null)
+                {
+                    foreach (var subkeyName in displayRootKey.GetSubKeyNames())
+                    {
+                        using var subKey = displayRootKey.OpenSubKey(subkeyName);
+                        if (subKey != null)
+                        {
+                            var hwIdObj = subKey.GetValue("HardwareID");
+                            if (hwIdObj is string[] hwIds && hwIds.Any(id => id.Contains("MonitorSplitDriver", StringComparison.OrdinalIgnoreCase)))
+                                return true;
+                            if (hwIdObj is string hwIdStr && hwIdStr.Contains("MonitorSplitDriver", StringComparison.OrdinalIgnoreCase))
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            // Method 2: Check Direct Root Enum key
+            using (var directRootKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\Root\MonitorSplitDriver"))
+            {
+                if (directRootKey != null) return true;
+            }
+
+            // Method 3: Fallback check for service key
+            using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\MonitorSplitDriver"))
+            {
+                if (key != null) return true;
+            }
+
+            return false;
         }
         catch { return false; }
     }
