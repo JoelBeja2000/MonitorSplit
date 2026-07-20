@@ -228,51 +228,103 @@
                                 <Border CornerRadius="8" Background="{StaticResource BgInput}"
                                         BorderBrush="{StaticResource BorderNormal}" BorderThickness="1">
                                     <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <!-- Left monitor width proportional to SplitRatio -->
-                                            <ColumnDefinition Width="{Binding SplitRatioSlider, Converter={StaticResource RatioToGridLengthConverter}}"/>
-                                            <ColumnDefinition Width="3"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                        <!-- Landscape Layout (Left/Right Split) -->
+                                        <Grid Visibility="{Binding IsPortrait, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                            <Grid.ColumnDefinitions>
+                                                <!-- Left monitor width proportional to SplitRatio -->
+                                                <ColumnDefinition Width="{Binding SplitRatioSlider, Converter={StaticResource RatioToGridLengthConverter}}"/>
+                                                <ColumnDefinition Width="3"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- Left half (Monitor 1) -->
-                                        <Border Grid.Column="0" Margin="6" CornerRadius="6"
-                                                Background="{StaticResource GradientMonitorLeft}"
-                                                Opacity="0.85">
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                        >
-                                                <TextBlock Text="Monitor 1" FontSize="12" FontWeight="Bold"
-                                                           Foreground="White" HorizontalAlignment="Center"/>
-                                                <TextBlock HorizontalAlignment="Center"
-                                                           FontSize="11" Foreground="#CCFFFFFF">
-                                                    <Run Text="{Binding Config.Monitor1Width}"/>
-                                                    <Run Text="×"/>
-                                                    <Run Text="{Binding Config.Monitor1Height}"/>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Border>
+                                            <!-- Left half (Monitor 1) -->
+                                            <Border Grid.Column="0" Margin="6" CornerRadius="6"
+                                                    Background="{StaticResource GradientMonitorLeft}"
+                                                    Opacity="0.85">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                            >
+                                                    <TextBlock Text="Monitor 1" FontSize="12" FontWeight="Bold"
+                                                               Foreground="White" HorizontalAlignment="Center"/>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               FontSize="11" Foreground="#CCFFFFFF">
+                                                        <Run Text="{Binding Config.Monitor1Width}"/>
+                                                        <Run Text="×"/>
+                                                        <Run Text="{Binding Config.Monitor1Height}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
 
-                                        <!-- Divider line -->
-                                        <Border Grid.Column="1"
-                                                Background="{StaticResource AccentPrimary}"
-                                                Opacity="0.7" CornerRadius="2"/>
+                                            <!-- Divider line -->
+                                            <Border Grid.Column="1"
+                                                    Background="{StaticResource AccentPrimary}"
+                                                    Opacity="0.7" CornerRadius="2"/>
 
-                                        <!-- Right half (Monitor 2) -->
-                                        <Border Grid.Column="2" Margin="6" CornerRadius="6"
-                                                Background="{StaticResource GradientMonitorRight}"
-                                                Opacity="0.85">
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                        >
-                                                <TextBlock Text="Monitor 2" FontSize="12" FontWeight="Bold"
-                                                           Foreground="White" HorizontalAlignment="Center"/>
-                                                <TextBlock HorizontalAlignment="Center"
-                                                           FontSize="11" Foreground="#CCFFFFFF">
-                                                    <Run Text="{Binding Config.Monitor2Width}"/>
-                                                    <Run Text="×"/>
-                                                    <Run Text="{Binding Config.Monitor2Height}"/>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Border>
+                                            <!-- Right half (Monitor 2) -->
+                                            <Border Grid.Column="2" Margin="6" CornerRadius="6"
+                                                    Background="{StaticResource GradientMonitorRight}"
+                                                    Opacity="0.85">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                            >
+                                                    <TextBlock Text="Monitor 2" FontSize="12" FontWeight="Bold"
+                                                               Foreground="White" HorizontalAlignment="Center"/>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               FontSize="11" Foreground="#CCFFFFFF">
+                                                        <Run Text="{Binding Config.Monitor2Width}"/>
+                                                        <Run Text="×"/>
+                                                        <Run Text="{Binding Config.Monitor2Height}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Portrait Layout (Top/Bottom Split) -->
+                                        <Grid Visibility="{Binding IsPortrait, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Grid.RowDefinitions>
+                                                <!-- Top monitor height proportional to SplitRatio -->
+                                                <RowDefinition Height="{Binding SplitRatioSlider, Converter={StaticResource RatioToGridLengthConverter}}"/>
+                                                <RowDefinition Height="3"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Top half (Monitor 1) -->
+                                            <Border Grid.Row="0" Margin="6" CornerRadius="6"
+                                                    Background="{StaticResource GradientMonitorLeft}"
+                                                    Opacity="0.85">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                            >
+                                                    <TextBlock Text="Monitor 1" FontSize="12" FontWeight="Bold"
+                                                               Foreground="White" HorizontalAlignment="Center"/>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               FontSize="11" Foreground="#CCFFFFFF">
+                                                        <Run Text="{Binding Config.Monitor1Width}"/>
+                                                        <Run Text="×"/>
+                                                        <Run Text="{Binding Config.Monitor1Height}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Divider line -->
+                                            <Border Grid.Row="1"
+                                                    Background="{StaticResource AccentPrimary}"
+                                                    Opacity="0.7" CornerRadius="2"/>
+
+                                            <!-- Bottom half (Monitor 2) -->
+                                            <Border Grid.Row="2" Margin="6" CornerRadius="6"
+                                                    Background="{StaticResource GradientMonitorRight}"
+                                                    Opacity="0.85">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                            >
+                                                    <TextBlock Text="Monitor 2" FontSize="12" FontWeight="Bold"
+                                                               Foreground="White" HorizontalAlignment="Center"/>
+                                                    <TextBlock HorizontalAlignment="Center"
+                                                               FontSize="11" Foreground="#CCFFFFFF">
+                                                        <Run Text="{Binding Config.Monitor2Width}"/>
+                                                        <Run Text="×"/>
+                                                        <Run Text="{Binding Config.Monitor2Height}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
                                     </Grid>
                                 </Border>
                             </Grid>

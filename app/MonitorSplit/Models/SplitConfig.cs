@@ -50,10 +50,22 @@ public class SplitConfig
     /// </summary>
     public void RecalculateFromPhysical()
     {
-        Monitor1Width  = (int)(PhysicalWidth * SplitRatio);
-        Monitor1Height = PhysicalHeight;
-        Monitor2Width  = PhysicalWidth - Monitor1Width;
-        Monitor2Height = PhysicalHeight;
+        if (PhysicalHeight > PhysicalWidth)
+        {
+            // Portrait mode: split top and bottom (vertical stack)
+            Monitor1Width  = PhysicalWidth;
+            Monitor1Height = (int)(PhysicalHeight * SplitRatio);
+            Monitor2Width  = PhysicalWidth;
+            Monitor2Height = PhysicalHeight - Monitor1Height;
+        }
+        else
+        {
+            // Landscape mode: split left and right (horizontal side-by-side)
+            Monitor1Width  = (int)(PhysicalWidth * SplitRatio);
+            Monitor1Height = PhysicalHeight;
+            Monitor2Width  = PhysicalWidth - Monitor1Width;
+            Monitor2Height = PhysicalHeight;
+        }
     }
 }
 

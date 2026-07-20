@@ -34,6 +34,9 @@ public partial class MainViewModel : ObservableObject
     // ─── Observable Properties ────────────────────────────────────────
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPortrait))]
+    [NotifyPropertyChangedFor(nameof(SplitRatioPercent))]
+    [NotifyPropertyChangedFor(nameof(SplitRatioSlider))]
     private SplitConfig _config = new();
 
     [ObservableProperty]
@@ -55,6 +58,9 @@ public partial class MainViewModel : ObservableObject
     private bool _isBusy;
 
     // ─── Computed Properties ──────────────────────────────────────────
+
+    /// <summary>Whether the currently selected physical monitor is vertical (portrait mode)</summary>
+    public bool IsPortrait => Config.PhysicalHeight > Config.PhysicalWidth;
 
     /// <summary>Split ratio as percentage string (e.g. "50%")</summary>
     public string SplitRatioPercent => $"{Config.SplitRatio * 100:F0}%";
@@ -92,6 +98,7 @@ public partial class MainViewModel : ObservableObject
 
         OnPropertyChanged(nameof(Config));
         OnPropertyChanged(nameof(SplitRatioPercent));
+        OnPropertyChanged(nameof(IsPortrait));
     }
 
     partial void OnSelectedMonitorChanged(PhysicalMonitor? value)

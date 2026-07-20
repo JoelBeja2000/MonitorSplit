@@ -15,6 +15,8 @@ public partial class MainWindow : Window
         Resources["InverseBoolConverter"] = new InverseBoolConverter();
         Resources["NullToCollapsedConverter"] = new NullToCollapsedConverter();
         Resources["RatioToGridLengthConverter"] = new RatioToGridLengthConverter();
+        Resources["BoolToVisibilityConverter"] = new BoolToVisibilityConverter();
+        Resources["InverseBoolToVisibilityConverter"] = new InverseBoolToVisibilityConverter();
 
         InitializeComponent();
     }
