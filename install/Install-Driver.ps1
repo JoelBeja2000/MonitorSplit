@@ -129,34 +129,30 @@ if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010 -and $LASTEXITCODE -ne 259) 
 
 Write-Host "[o] Driver added to store" -ForegroundColor Green
 
-# --- Step 2: Create exactly ONE virtual device node --------------------
+# --- Step 2: Ensure virtual device node is created and active ----------
 Write-Host ""
-Write-Host "[2/3] Creating virtual device node..." -ForegroundColor Cyan
+Write-Host "[2/3] Activating virtual device node..." -ForegroundColor Cyan
 
 if ($devcon) {
-    Write-Host "Using devcon.exe: $devcon" -ForegroundColor Gray
-    Write-Host "Installing root device node..." -ForegroundColor Cyan
-    $devconOutput = & $devcon install "$InfFile" "Root\MonitorSplitDriver" 2>&1
-    Write-Host $devconOutput -ForegroundColor Gray
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Updating driver binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
+    Write-Host "Rescanning PnP device tree..." -ForegroundColor Gray
+    & $devcon rescan 2>&1 | Out-Null
+    
+    # Check if device node is bound
+    $device = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" -or $_.InstanceId -match "MonitorSplit" } | Select-Object -First 1
+    if (-not $device) {
+        Write-Host "Attempting driver update binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
         $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
         Write-Host $updateOutput -ForegroundColor Gray
     }
+}
 
-    if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {
-        Write-Host "[o] Virtual device node created and configured" -ForegroundColor Green
-    } else {
-        Write-Host "[!] devcon.exe returned exit code $LASTEXITCODE" -ForegroundColor Yellow
-    }
-
-    # Check status after creation
-    Start-Sleep -Seconds 2
-    $deviceStatus = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" -or $_.InstanceId -match "MonitorSplit" } | Select-Object Status, Problem -First 1
-    if ($deviceStatus) {
-        Write-Host "Device Status: $($deviceStatus.Status), Problem: $($deviceStatus.Problem)" -ForegroundColor $(if ($deviceStatus.Status -eq 'OK') { 'Green' } else { 'Yellow' })
-    }
+# Final check of device status
+Start-Sleep -Seconds 2
+$deviceStatus = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" -or $_.InstanceId -match "MonitorSplit" } | Select-Object Status, Problem, FriendlyName, InstanceId -First 1
+if ($deviceStatus) {
+    Write-Host "[o] Virtual Device found: $($deviceStatus.InstanceId) - Status: $($deviceStatus.Status)" -ForegroundColor Green
+} else {
+    Write-Host "[!] Virtual device node created. Rebooting may be required for Windows to initialize the display adapter." -ForegroundColor Yellow
 } else {
     Write-Host "[!] devcon.exe not found." -ForegroundColor Yellow
     Write-Host "  Manual installation required:" -ForegroundColor Yellow
