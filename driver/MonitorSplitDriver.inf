@@ -1,38 +1,16 @@
 ; MonitorSplitDriver.inf
-;
 ; INF file for the MonitorSplit Indirect Display Driver.
-; This file tells Windows how to install the driver and associate it
-; with the correct device class (Display Adapters).
-;
-; For development: use pnputil /add-driver with Test Signing enabled.
-; For distribution: sign the .cat file with an EV code-signing certificate.
-;
 ; Copyright (c) MonitorSplit Contributors. MIT License.
-;
 
 [Version]
+PnpLockDown = 1
 Signature   = "$WINDOWS NT$"
 Class       = Display
 ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 ClassVer    = 2.0
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/20/2026,1.0.15.0
-PnpLockdown = 1
-
-[DestinationDirs]
-DefaultDestDir = 13
-UMDriverCopy   = 13         ; Driver store (WDK 1903+)
-
-[SourceDisksNames]
-1 = %DiskName%,,,""
-
-[SourceDisksFiles]
-MonitorSplitDriver.dll = 1
-
-;
-; === Manufacturer and Models ===
-;
+DriverVer   = 07/20/2026,1.0.16.0
 
 [Manufacturer]
 %ManufacturerName% = Standard,NTamd64
@@ -40,13 +18,15 @@ MonitorSplitDriver.dll = 1
 [Standard.NTamd64]
 %DeviceName% = MonitorSplit_Install, Root\MonitorSplitDriver
 
-;
-; === Driver Installation ===
-;
+[SourceDisksFiles]
+MonitorSplitDriver.dll = 1
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
 
 [MonitorSplit_Install.NT]
-Include = WUDFRD.inf
-Needs   = WUDFRD.NT
+Include   = WUDFRD.inf
+Needs     = WUDFRD.NT
 CopyFiles = UMDriverCopy
 
 [MonitorSplit_Install.NT.hw]
@@ -55,41 +35,34 @@ Needs   = WUDFRD.NT.HW
 AddReg  = MonitorSplit_AddReg
 
 [MonitorSplit_AddReg]
-HKR,,"Monitor1Width",  %REG_DWORD%, 960
-HKR,,"Monitor1Height", %REG_DWORD%, 1080
-HKR,,"Monitor1RefreshHz", %REG_DWORD%, 60
-HKR,,"Monitor2Width",  %REG_DWORD%, 960
-HKR,,"Monitor2Height", %REG_DWORD%, 1080
-HKR,,"Monitor2RefreshHz", %REG_DWORD%, 60
-HKR,,"IsEnabled",      %REG_DWORD%, 1
+HKR,,"Monitor1Width",     0x00010001, 960
+HKR,,"Monitor1Height",    0x00010001, 1080
+HKR,,"Monitor1RefreshHz", 0x00010001, 60
+HKR,,"Monitor2Width",     0x00010001, 960
+HKR,,"Monitor2Height",    0x00010001, 1080
+HKR,,"Monitor2RefreshHz", 0x00010001, 60
+HKR,,"IsEnabled",         0x00010001, 1
 
 [MonitorSplit_Install.NT.Services]
 Include = WUDFRD.inf
 Needs   = WUDFRD.NT.Services
 
+[MonitorSplit_Install.NT.Wdf]
+UmdfDispatcher   = Direct
+UmdfService      = MonitorSplitDriver, MonitorSplitDriver_Install
+UmdfServiceOrder = MonitorSplitDriver
+
+[MonitorSplitDriver_Install]
+UmdfLibraryVersion = 2.25
+ServiceBinary      = %13%\MonitorSplitDriver.dll
+
+[DestinationDirs]
+UMDriverCopy = 13
+
 [UMDriverCopy]
 MonitorSplitDriver.dll
 
-[MonitorSplit_Install.NT.Wdf]
-UmdfDispatcher = Direct
-UmdfService = MonitorSplitDriver, MonitorSplit_Install_Wdf_Service
-UmdfServiceOrder = MonitorSplitDriver
-
-[MonitorSplit_Install_Wdf_Service]
-UmdfLibraryVersion = 2.33
-ServiceBinary = %13%\MonitorSplitDriver.dll
-
-;
-; === Strings ===
-;
-
 [Strings]
-ManufacturerName  = "MonitorSplit Project"
-DiskName          = "MonitorSplit Driver Disk"
-DeviceName        = "MonitorSplit Virtual Display Adapter"
-ServiceName       = "MonitorSplit Display Driver"
-WudfRdDisplayName = "Windows Driver Foundation - User-mode Driver Framework Reflector"
-
-; Registry value types
-REG_DWORD = 0x00010001
-REG_SZ    = 0x00000000
+ManufacturerName = "MonitorSplit Project"
+DiskName         = "MonitorSplit Driver Disk"
+DeviceName       = "MonitorSplit Virtual Display Adapter"
