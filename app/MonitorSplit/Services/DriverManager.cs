@@ -173,10 +173,29 @@ public class DriverManager
                 if (directRootKey != null) return true;
             }
 
-            // Method 3: Fallback check for service key
+            // Method 3: Check UMDF Services key
+            using (var umdfKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF\Services\MonitorSplitDriver"))
+            {
+                if (umdfKey != null) return true;
+            }
+
+            // Method 4: Fallback check for kernel service key
             using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\MonitorSplitDriver"))
             {
                 if (key != null) return true;
+            }
+
+            // Method 5: Check Setup INF OEM keys in DriverStore
+            using (var oemKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\PnpLockdownFiles"))
+            {
+                if (oemKey != null)
+                {
+                    foreach (var valName in oemKey.GetValueNames())
+                    {
+                        if (valName.Contains("MonitorSplitDriver", StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    }
+                }
             }
 
             return false;

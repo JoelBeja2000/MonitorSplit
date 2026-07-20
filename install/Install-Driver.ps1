@@ -129,17 +129,17 @@ if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010 -and $LASTEXITCODE -ne 259) 
 
 Write-Host "[o] Driver added to store" -ForegroundColor Green
 
-# --- Step 2: Ensure virtual device node is created and active ----------
+# --- Step 2: Create virtual device node using devcon -------------------
 Write-Host ""
-Write-Host "[2/3] Activating virtual device node..." -ForegroundColor Cyan
+Write-Host "[2/3] Creating virtual device node..." -ForegroundColor Cyan
 
 if ($devcon) {
-    Write-Host "Rescanning PnP device tree..." -ForegroundColor Gray
-    & $devcon rescan 2>&1 | Out-Null
-    
-    # Check if device node is bound
-    $device = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" -or $_.InstanceId -match "MonitorSplit" } | Select-Object -First 1
-    if (-not $device) {
+    Write-Host "Using devcon.exe: $devcon" -ForegroundColor Gray
+    Write-Host "Creating root device node Root\MonitorSplitDriver..." -ForegroundColor Cyan
+    $devconOutput = & $devcon install "$InfFile" "Root\MonitorSplitDriver" 2>&1
+    Write-Host $devconOutput -ForegroundColor Gray
+
+    if ($LASTEXITCODE -ne 0) {
         Write-Host "Attempting driver update binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
         $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
         Write-Host $updateOutput -ForegroundColor Gray
