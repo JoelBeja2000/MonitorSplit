@@ -16,7 +16,7 @@ Class       = Display
 ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/19/2026,1.0.6.0
+DriverVer   = 07/19/2026,1.0.7.0
 PnpLockdown = 1
 
 [DestinationDirs]

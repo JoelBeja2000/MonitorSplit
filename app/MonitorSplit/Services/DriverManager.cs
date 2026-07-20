@@ -168,23 +168,28 @@ public class DriverManager
     {
         if (_deviceHandle != INVALID_HANDLE) return true;
 
-        _deviceHandle = CreateFile(
-            DEVICE_SYMBOLIC_LINK,
-            GENERIC_READ | GENERIC_WRITE,
-            FILE_SHARE_READ | FILE_SHARE_WRITE,
-            IntPtr.Zero,
-            OPEN_EXISTING,
-            0,
-            IntPtr.Zero);
-
-        if (_deviceHandle == INVALID_HANDLE)
+        string[] candidatePaths = new string[]
         {
-            var error = Marshal.GetLastWin32Error();
-            System.Diagnostics.Debug.WriteLine($"CreateFile failed: error {error}");
-            return false;
+            @"\\.\MonitorSplitDriver",
+            @"\\.\Global\MonitorSplitDriver"
+        };
+
+        foreach (var path in candidatePaths)
+        {
+            _deviceHandle = CreateFile(
+                path,
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                IntPtr.Zero,
+                OPEN_EXISTING,
+                0,
+                IntPtr.Zero);
+
+            if (_deviceHandle != INVALID_HANDLE)
+                return true;
         }
 
-        return true;
+        return false;
     }
 
     /// <summary>
