@@ -144,6 +144,8 @@ if ($devcon) {
         $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
         Write-Host $updateOutput -ForegroundColor Gray
     }
+} else {
+    Write-Host "[!] devcon.exe not found." -ForegroundColor Yellow
 }
 
 # Final check of device status
@@ -153,13 +155,6 @@ if ($deviceStatus) {
     Write-Host "[o] Virtual Device found: $($deviceStatus.InstanceId) - Status: $($deviceStatus.Status)" -ForegroundColor Green
 } else {
     Write-Host "[!] Virtual device node created. Rebooting may be required for Windows to initialize the display adapter." -ForegroundColor Yellow
-} else {
-    Write-Host "[!] devcon.exe not found." -ForegroundColor Yellow
-    Write-Host "  Manual installation required:" -ForegroundColor Yellow
-    Write-Host "  1. Open Device Manager (devmgmt.msc)" -ForegroundColor White
-    Write-Host "  2. Action -> Add Legacy Hardware" -ForegroundColor White
-    Write-Host "  3. Manually install hardware not in a list" -ForegroundColor White
-    Write-Host "  4. Display adapters -> Have Disk -> Browse to: $DriverPath" -ForegroundColor White
 }
 
 # --- Step 3: Verify installation --------------------------------------
