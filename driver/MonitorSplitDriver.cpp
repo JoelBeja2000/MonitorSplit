@@ -118,6 +118,22 @@ NTSTATUS MonitorSplit_EvtDriverDeviceAdd(
     }
 
     //
+    // Create symbolic link and device interface for usermode communication
+    //
+    UNICODE_STRING symbolicLinkName;
+    RtlInitUnicodeString(&symbolicLinkName, L"\\DosDevices\\MonitorSplitDriver");
+    status = WdfDeviceCreateSymbolicLink(wdfDevice, &symbolicLinkName);
+    if (!NT_SUCCESS(status)) {
+        TraceError("WdfDeviceCreateSymbolicLink failed: 0x%08X", status);
+    }
+
+    status = WdfDeviceCreateDeviceInterface(wdfDevice, &GUID_DEVINTERFACE_MONITORSPLIT, NULL);
+    if (!NT_SUCCESS(status)) {
+        TraceError("WdfDeviceCreateDeviceInterface failed: 0x%08X", status);
+        return status;
+    }
+
+    //
     // Initialize device context with default config
     //
     PDEVICE_CONTEXT pDevCtx = WdfObjectGet_DEVICE_CONTEXT(wdfDevice);
