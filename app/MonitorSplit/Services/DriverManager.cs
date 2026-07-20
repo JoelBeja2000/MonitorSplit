@@ -245,10 +245,33 @@ public class DriverManager
     {
         try
         {
-            var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe", "-Command \"Start-Process devcon -ArgumentList 'remove Root\\MonitorSplitDriver' -Verb RunAs -Wait; Start-Process pnputil -ArgumentList '/delete-driver MonitorSplitDriver.inf /uninstall /force' -Verb RunAs -Wait\"")
+            Disconnect();
+
+            string scriptDir = AppContext.BaseDirectory;
+            string devcon = Path.Combine(scriptDir, "install", "devcon.exe");
+            if (!File.Exists(devcon)) devcon = Path.Combine(scriptDir, "devcon.exe");
+
+            string uninstallCommand =
+                $"$devcon = '{devcon}'; " +
+                "if (Test-Path $devcon) { & $devcon remove 'Root\\MonitorSplitDriver' | Out-Null }; " +
+                "Stop-Service -Name 'MonitorSplitDriver' -Force -ErrorAction SilentlyContinue; " +
+                "sc.exe delete MonitorSplitDriver 2>&1 | Out-Null; " +
+                "$oemDrivers = & pnputil /enum-drivers 2>&1 | Select-String -Pattern 'oem\\d+\\.inf' -Context 0, 5; " +
+                "foreach ($line in $oemDrivers) { " +
+                    "if ($line.Line -match 'oem\\d+\\.inf') { " +
+                        "$oem = $Matches[0]; " +
+                        "foreach ($ctx in $line.Context.PostContext) { " +
+                            "if ($ctx -match 'MonitorSplit') { pnputil /delete-driver $oem /uninstall /force | Out-Null } " +
+                        "} " +
+                    "} " +
+                "}";
+
+            var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{uninstallCommand}\"")
             {
-                UseShellExecute = true
+                UseShellExecute = true,
+                Verb = "runas"
             };
+
             using var proc = System.Diagnostics.Process.Start(psi);
             if (proc != null) await proc.WaitForExitAsync();
 

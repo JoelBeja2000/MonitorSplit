@@ -162,12 +162,19 @@
                             <!-- Install / Uninstall buttons -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" 
                                         VerticalAlignment="Center">
-                                <Button Content="Install Driver"
-                                        Style="{StaticResource ButtonPrimary}"
-                                        Padding="14,8" FontSize="13"
-                                        Command="{Binding InstallDriverCommand}"
-                                        IsEnabled="{Binding IsDriverInstalled,
-                                                    Converter={StaticResource InverseBoolConverter}}"/>
+                                <Button Padding="14,8" FontSize="13"
+                                        Command="{Binding InstallDriverCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimary}">
+                                            <Setter Property="Content" Value="Install Driver"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDriverInstalled}" Value="True">
+                                                    <Setter Property="Content" Value="Reinstall Driver"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                                 <Button Content="Uninstall"
                                         Style="{StaticResource ButtonGhost}"
                                         Padding="14,8" FontSize="13"
