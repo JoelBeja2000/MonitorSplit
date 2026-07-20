@@ -16,7 +16,7 @@ Class       = Display
 ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/20/2026,1.0.8.0
+DriverVer   = 07/20/2026,1.0.9.0
 PnpLockdown = 1
 
 [DestinationDirs]
@@ -48,10 +48,14 @@ MonitorSplitDriver.dll = 1
 ;
 
 [MonitorSplit_Install.NT]
+Include = WUDFRD.inf
+Needs   = WUDFRD.NT
 CopyFiles = UserModeSection
 
 [MonitorSplit_Install.NT.HW]
-AddReg = MonitorSplit_AddReg
+Include = WUDFRD.inf
+Needs   = WUDFRD.NT.HW
+AddReg  = MonitorSplit_AddReg
 
 [MonitorSplit_AddReg]
 ; Store default configuration in the registry
@@ -65,19 +69,14 @@ HKR,,"Monitor2RefreshHz", %REG_DWORD%, 60
 HKR,,"IsEnabled",      %REG_DWORD%, 1
 
 [MonitorSplit_Install.NT.Services]
-AddService = WUDFRd, 0x00000002, WUDFRD_ServiceInstall
-
-[WUDFRD_ServiceInstall]
-DisplayName    = %WudfRdDisplayName%
-ServiceType    = 1  ; SERVICE_KERNEL_DRIVER
-StartType      = 3  ; SERVICE_DEMAND_START
-ErrorControl   = 1  ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %12%\WUDFRd.sys
+Include = WUDFRD.inf
+Needs   = WUDFRD.NT.Services
 
 [UserModeSection]
 MonitorSplitDriver.dll
 
 [MonitorSplit_Install.NT.Wdf]
+UmdfDispatcher = Direct
 UmdfService = MonitorSplitDriver, MonitorSplit_Install_Wdf_Service
 UmdfServiceOrder = MonitorSplitDriver
 
