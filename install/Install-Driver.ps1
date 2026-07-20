@@ -128,11 +128,16 @@ Write-Host "[2/3] Creating virtual device node..." -ForegroundColor Cyan
 
 if ($devcon) {
     Write-Host "Using devcon.exe: $devcon" -ForegroundColor Gray
+    Write-Host "Installing root device node..." -ForegroundColor Cyan
     $devconOutput = & $devcon install "$InfFile" "Root\MonitorSplitDriver" 2>&1
     Write-Host $devconOutput -ForegroundColor Gray
 
+    Write-Host "Updating driver binding for Root\MonitorSplitDriver..." -ForegroundColor Cyan
+    $updateOutput = & $devcon update "$InfFile" "Root\MonitorSplitDriver" 2>&1
+    Write-Host $updateOutput -ForegroundColor Gray
+
     if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {
-        Write-Host "[o] Virtual device node created" -ForegroundColor Green
+        Write-Host "[o] Virtual device node created and updated" -ForegroundColor Green
     } else {
         Write-Host "[!] devcon.exe returned exit code $LASTEXITCODE" -ForegroundColor Yellow
     }

@@ -43,6 +43,67 @@ public class DriverManager
     [DllImport(KERNEL32_DLL, SetLastError = true)]
     private static extern bool CloseHandle(IntPtr hObject);
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SP_DEVICE_INTERFACE_DATA
+    {
+        public int cbSize;
+        public Guid InterfaceClassGuid;
+        public int Flags;
+        public IntPtr Reserved;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    private struct SP_DEVICE_INTERFACE_DETAIL_DATA
+    {
+        public int cbSize;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        public string DevicePath;
+    }
+
+    [DllImport(SETUPAPI_DLL, SetLastError = true)]
+    private static extern IntPtr SetupDiGetClassDevs(ref Guid ClassGuid, string? Enumerator, IntPtr hwndParent, uint Flags);
+
+    [DllImport(SETUPAPI_DLL, SetLastError = true)]
+    private static extern bool SetupDiEnumDeviceInterfaces(IntPtr DeviceInfoSet, IntPtr DeviceInfoData, ref Guid InterfaceClassGuid, uint MemberIndex, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData);
+
+    [DllImport(SETUPAPI_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern bool SetupDiGetDeviceInterfaceDetail(IntPtr DeviceInfoSet, ref SP_DEVICE_INTERFACE_DATA DeviceInterfaceData, ref SP_DEVICE_INTERFACE_DETAIL_DATA DeviceInterfaceDetailData, uint DeviceInterfaceDetailDataSize, out uint RequiredSize, IntPtr DeviceInfoData);
+
+    [DllImport(SETUPAPI_DLL, SetLastError = true)]
+    private static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
+
+    private static string? GetDeviceInterfacePath()
+    {
+        try
+        {
+            Guid g = new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
+            IntPtr handle = SetupDiGetClassDevs(ref g, null, IntPtr.Zero, 0x10); // DIGCF_PRESENT | DIGCF_DEVICEINTERFACE
+            if (handle == new IntPtr(-1)) return null;
+
+            try
+            {
+                var data = new SP_DEVICE_INTERFACE_DATA();
+                data.cbSize = Marshal.SizeOf(data);
+
+                if (SetupDiEnumDeviceInterfaces(handle, IntPtr.Zero, ref g, 0, ref data))
+                {
+                    var detail = new SP_DEVICE_INTERFACE_DETAIL_DATA();
+                    detail.cbSize = (IntPtr.Size == 8) ? 8 : 4 + Marshal.SystemDefaultCharSize;
+                    if (SetupDiGetDeviceInterfaceDetail(handle, ref data, ref detail, 256, out _, IntPtr.Zero))
+                    {
+                        return detail.DevicePath;
+                    }
+                }
+            }
+            finally
+            {
+                SetupDiDestroyDeviceInfoList(handle);
+            }
+        }
+        catch { }
+        return null;
+    }
+
     private const uint GENERIC_READ   = 0x80000000;
     private const uint GENERIC_WRITE  = 0x40000000;
     private const uint OPEN_EXISTING  = 3;
@@ -208,11 +269,14 @@ public class DriverManager
     {
         if (_deviceHandle != INVALID_HANDLE) return true;
 
-        string[] candidatePaths = new string[]
+        List<string> candidatePaths = new List<string>();
+        string? devPath = GetDeviceInterfacePath();
+        if (!string.IsNullOrEmpty(devPath))
         {
-            @"\\.\MonitorSplitDriver",
-            @"\\.\Global\MonitorSplitDriver"
-        };
+            candidatePaths.Add(devPath);
+        }
+        candidatePaths.Add(@"\\.\MonitorSplitDriver");
+        candidatePaths.Add(@"\\.\Global\MonitorSplitDriver");
 
         foreach (var path in candidatePaths)
         {
