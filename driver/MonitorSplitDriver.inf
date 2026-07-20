@@ -10,7 +10,7 @@ ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 ClassVer    = 2.0
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/20/2026,1.0.18.0
+DriverVer   = 07/20/2026,1.0.20.0
 
 [Manufacturer]
 %ManufacturerName% = Standard,NTamd64
@@ -53,7 +53,7 @@ UmdfService      = MonitorSplitDriver, MonitorSplitDriver_Install
 UmdfServiceOrder = MonitorSplitDriver
 
 [MonitorSplitDriver_Install]
-UmdfLibraryVersion = 2.25
+UmdfLibraryVersion = 2.33
 ServiceBinary      = %13%\MonitorSplitDriver.dll
 
 [DestinationDirs]
