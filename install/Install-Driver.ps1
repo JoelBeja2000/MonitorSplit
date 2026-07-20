@@ -62,17 +62,37 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# --- Step 1: Add driver to driver store --------------------------------
+# --- Step 1: Full cleanup of all old device nodes + driver packages ----
 Write-Host ""
-Write-Host "[1/3] Cleaning up old driver versions and adding driver to Windows Driver Store..." -ForegroundColor Cyan
+Write-Host "[1/3] Full cleanup: removing ALL MonitorSplit device nodes and driver packages..." -ForegroundColor Cyan
 
-# Find and delete any existing MonitorSplit OEM driver packages
+# First, remove ALL MonitorSplit device nodes using devcon
+$devconLocations = @(
+    "C:\Program Files (x86)\Windows Kits\10\Tools\x64\devcon.exe",
+    "C:\Program Files (x86)\Windows Kits\11\Tools\x64\devcon.exe",
+    (Join-Path $ScriptDir "devcon.exe"),
+    (Join-Path $ScriptDir "..\tools\devcon.exe")
+)
+$devcon = $devconLocations | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+if ($devcon) {
+    Write-Host "Removing all MonitorSplit device nodes..." -ForegroundColor Yellow
+    & $devcon remove "Root\MonitorSplitDriver" 2>&1 | Out-Null
+    Start-Sleep -Seconds 1
+} else {
+    Write-Host "[!] devcon.exe not found. Cannot clean device nodes." -ForegroundColor Yellow
+}
+
+# Delete the old Windows service entry
+Stop-Service -Name "MonitorSplitDriver" -Force -ErrorAction SilentlyContinue
+sc.exe delete MonitorSplitDriver 2>&1 | Out-Null
+
+# Remove all OEM driver packages
 $oemDrivers = & pnputil /enum-drivers 2>&1 | Select-String -Pattern "oem\d+\.inf" -Context 0, 5
 $existingOEMs = @()
 foreach ($line in $oemDrivers) {
     if ($line.Line -match 'oem\d+\.inf') {
         $oemName = $Matches[0]
-        # Check if this context is indeed for MonitorSplit
         $isMonitorSplit = $false
         foreach ($ctxLine in $line.Context.PostContext) {
             if ($ctxLine -match 'MonitorSplit') { $isMonitorSplit = $true }
@@ -84,10 +104,14 @@ foreach ($line in $oemDrivers) {
 }
 
 foreach ($oem in $existingOEMs) {
-    Write-Host "Removing older driver package: $oem..." -ForegroundColor Yellow
+    Write-Host "Removing driver package: $oem..." -ForegroundColor Yellow
     & pnputil /delete-driver $oem /uninstall /force 2>&1 | Out-Null
 }
 
+Write-Host "[o] Cleanup complete" -ForegroundColor Green
+
+# Now add fresh driver
+Write-Host "Adding fresh driver to store..." -ForegroundColor Cyan
 $addOutput = & pnputil /add-driver "$InfFile" /install 2>&1
 Write-Host $addOutput -ForegroundColor Gray
 
@@ -98,19 +122,9 @@ if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010 -and $LASTEXITCODE -ne 259) 
 
 Write-Host "[o] Driver added to store" -ForegroundColor Green
 
-# --- Step 2: Create the virtual device node ----------------------------
+# --- Step 2: Create exactly ONE virtual device node --------------------
 Write-Host ""
 Write-Host "[2/3] Creating virtual device node..." -ForegroundColor Cyan
-
-# Look for devcon.exe
-$devconLocations = @(
-    "C:\Program Files (x86)\Windows Kits\10\Tools\x64\devcon.exe",
-    "C:\Program Files (x86)\Windows Kits\11\Tools\x64\devcon.exe",
-    (Join-Path $ScriptDir "devcon.exe"),
-    (Join-Path $ScriptDir "..\tools\devcon.exe")
-)
-
-$devcon = $devconLocations | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 if ($devcon) {
     Write-Host "Using devcon.exe: $devcon" -ForegroundColor Gray
@@ -121,8 +135,13 @@ if ($devcon) {
         Write-Host "[o] Virtual device node created" -ForegroundColor Green
     } else {
         Write-Host "[!] devcon.exe returned exit code $LASTEXITCODE" -ForegroundColor Yellow
-        Write-Host "  You may need to create the device node manually via Device Manager:" -ForegroundColor Yellow
-        Write-Host "  -> Action -> Add Legacy Hardware -> Manual -> Display adapters -> Have Disk" -ForegroundColor Yellow
+    }
+
+    # Check status after creation
+    Start-Sleep -Seconds 2
+    $deviceStatus = Get-PnpDevice | Where-Object { $_.FriendlyName -match "MonitorSplit" } | Select-Object Status, Problem -First 1
+    if ($deviceStatus) {
+        Write-Host "Device Status: $($deviceStatus.Status), Problem: $($deviceStatus.Problem)" -ForegroundColor $(if ($deviceStatus.Status -eq 'OK') { 'Green' } else { 'Yellow' })
     }
 } else {
     Write-Host "[!] devcon.exe not found." -ForegroundColor Yellow
@@ -131,9 +150,6 @@ if ($devcon) {
     Write-Host "  2. Action -> Add Legacy Hardware" -ForegroundColor White
     Write-Host "  3. Manually install hardware not in a list" -ForegroundColor White
     Write-Host "  4. Display adapters -> Have Disk -> Browse to: $DriverPath" -ForegroundColor White
-    Write-Host ""
-    Write-Host "  Alternatively, download devcon.exe from the WDK Extras:" -ForegroundColor Yellow
-    Write-Host "  https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon" -ForegroundColor Cyan
 }
 
 # --- Step 3: Verify installation --------------------------------------
