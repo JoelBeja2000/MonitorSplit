@@ -17,7 +17,7 @@ ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 ClassVer    = 2.0
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/20/2026,1.0.12.0
+DriverVer   = 07/20/2026,1.0.13.0
 PnpLockdown = 1
 
 [DestinationDirs]
@@ -52,7 +52,7 @@ Include = WUDFRD.inf
 Needs   = WUDFRD.NT
 CopyFiles = UMDriverCopy
 
-[MonitorSplit_Install.NT.HW]
+[MonitorSplit_Install.NT.hw]
 Include = WUDFRD.inf
 Needs   = WUDFRD.NT.HW
 AddReg  = MonitorSplit_AddReg
