@@ -440,20 +440,28 @@
 
                     <!-- Test Signing hint -->
                     <Border Background="#1A1508" BorderBrush="#78350F" BorderThickness="1"
-                            CornerRadius="8" Padding="14,10">
-                        <StackPanel >
-                            <TextBlock Text="⚠  Development Mode — Test Signing Required"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       Foreground="#F59E0B"/>
-                            <TextBlock TextWrapping="Wrap" FontSize="12"
-                                       Foreground="#9B7C4A">
-                                <Run>Run</Run>
-                                <Run FontFamily="Consolas" Background="#2A1F0A" Foreground="#FCD34D">
-                                    Enable-TestSigning.ps1
-                                </Run>
-                                <Run>as Administrator to allow unsigned driver loading, then reboot.</Run>
-                            </TextBlock>
-                        </StackPanel>
+                            CornerRadius="8" Padding="14,10" Margin="0,16,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="⚠  Development Mode — Test Signing Required"
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#F59E0B"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="#9B7C4A">
+                                    <Run>Windows requires Test Signing to be ENABLED for virtual display drivers.</Run>
+                                    <Run Text="Reboot required after enabling." FontWeight="Bold"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Enable Test Signing"
+                                    Style="{StaticResource ButtonGhost}"
+                                    Foreground="#F59E0B" BorderBrush="#78350F" BorderThickness="1"
+                                    Padding="10,4" FontSize="12" VerticalAlignment="Center"
+                                    Command="{Binding EnableTestSigningCommand}"/>
+                        </Grid>
                     </Border>
 
                 </StackPanel>

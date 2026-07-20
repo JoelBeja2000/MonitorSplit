@@ -147,6 +147,31 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task EnableTestSigningAsync()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("powershell.exe",
+                "-Command \"Start-Process bcdedit -ArgumentList '/set testsigning on' -Verb RunAs -Wait\"")
+            {
+                UseShellExecute = true
+            };
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc != null) await proc.WaitForExitAsync();
+
+            System.Windows.MessageBox.Show(
+                "Test Signing has been enabled in Windows!\n\nIMPORTANT: You MUST REBOOT your computer now for Windows to load the virtual display driver.",
+                "Test Signing Enabled — Reboot Required",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Failed to enable test signing: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
     private async Task UninstallDriverAsync()
     {
         IsBusy = true;
