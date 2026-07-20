@@ -17,6 +17,7 @@ public partial class MainWindow : Window
         Resources["RatioToGridLengthConverter"] = new RatioToGridLengthConverter();
         Resources["BoolToVisibilityConverter"] = new BoolToVisibilityConverter();
         Resources["InverseBoolToVisibilityConverter"] = new InverseBoolToVisibilityConverter();
+        Resources["InverseRatioToGridLengthConverter"] = new InverseRatioToGridLengthConverter();
 
         InitializeComponent();
     }

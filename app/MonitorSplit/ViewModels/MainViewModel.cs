@@ -29,6 +29,7 @@ public partial class MainViewModel : ObservableObject
         LoadConfig();
         RefreshMonitors();
         RefreshDriverStatus();
+        UpdatePreviewDimensions();
     }
 
     // ─── Observable Properties ────────────────────────────────────────
@@ -56,6 +57,12 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isBusy;
+
+    [ObservableProperty]
+    private double _previewWidth = 400;
+
+    [ObservableProperty]
+    private double _previewHeight = 225;
 
     // ─── Computed Properties ──────────────────────────────────────────
 
@@ -234,7 +241,11 @@ public partial class MainViewModel : ObservableObject
             {
                 var json = File.ReadAllText(_configPath);
                 var loaded = JsonSerializer.Deserialize<SplitConfig>(json);
-                if (loaded != null) Config = loaded;
+                if (loaded != null)
+                {
+                    Config = loaded;
+                    UpdatePreviewDimensions();
+                }
             }
         }
         catch { /* Use defaults */ }
@@ -244,5 +255,29 @@ public partial class MainViewModel : ObservableObject
     {
         IsDriverInstalled = _driverManager.IsDriverInstalled;
         IsDriverConnected = _driverManager.IsDriverConnected;
+    }
+
+    private void UpdatePreviewDimensions()
+    {
+        double physicalWidth = Config.PhysicalWidth > 0 ? Config.PhysicalWidth : 1920;
+        double physicalHeight = Config.PhysicalHeight > 0 ? Config.PhysicalHeight : 1080;
+        double aspectRatio = physicalWidth / physicalHeight;
+
+        // Bounding box limits for the preview area (max width 400, max height 160)
+        const double maxW = 400;
+        const double maxH = 160;
+
+        if (aspectRatio > (maxW / maxH))
+        {
+            // Limited by width
+            PreviewWidth = maxW;
+            PreviewHeight = maxW / aspectRatio;
+        }
+        else
+        {
+            // Limited by height
+            PreviewHeight = maxH;
+            PreviewWidth = maxH * aspectRatio;
+        }
     }
 }
