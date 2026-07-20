@@ -16,7 +16,7 @@ Class       = Display
 ClassGuid   = {4D36E968-E325-11CE-BFC1-08002BE10318}
 Provider    = %ManufacturerName%
 CatalogFile = MonitorSplitDriver.cat
-DriverVer   = 07/19/2026,1.0.4.0
+DriverVer   = 07/19/2026,1.0.5.0
 PnpLockdown = 1
 
 [DestinationDirs]
@@ -65,7 +65,7 @@ HKR,,"Monitor2RefreshHz", %REG_DWORD%, 60
 HKR,,"IsEnabled",      %REG_DWORD%, 1
 
 [MonitorSplit_Install.NT.Services]
-AddService = WUDFRd, 0x000001f8, WUDFRD_ServiceInstall
+AddService = WUDFRd, 0x00000002, WUDFRD_ServiceInstall
 
 [WUDFRD_ServiceInstall]
 DisplayName    = %WudfRdDisplayName%
